@@ -2,6 +2,7 @@
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/led_strip.h>
+#include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 #include <errno.h>
 #include <string.h>
@@ -11,85 +12,19 @@
 
 #define RGB_KEY_LED_COUNT 27
 
-/*
- * ============================================================
- * LED BUFFER
- * ============================================================
- *
- * 0-5  = underglow
- * 6-26 = LEDs das teclas
- */
 static struct led_rgb pixels[RGB_KEY_LED_COUNT];
 
 /*
- * ============================================================         
- * CORES INICIAIS
  * ============================================================
- *
- * LEFT:
- *
- *  6  SPACE
- *  7  B
- *  8  G
- *  9  T
- * 10  R
- * 11  F
- * 12  V
- * 13  LOWER
- * 14  LGUI
- * 15  C
- * 16  D
- * 17  E
- * 18  W
- * 19  S
- * 20  X
- * 21  Z
- * 22  A
- * 23  Q
- * 24  TAB
- * 25  LCTRL
- * 26  LSHIFT
- *
- * RIGHT:
- *
- *  6  ENTER
- *  7  N
- *  8  H
- *  9  Y
- * 10  U
- * 11  J
- * 12  M
- * 13  RAISE
- * 14  RALT
- * 15  COMMA
- * 16  DOT
- * 17  I
- * 18  O
- * 19  K
- * 20  FSLH
- * 21  SEMI
- * 22  L
- * 23  P
- * 24  BSPC
- * 25  SQT
- * 26  ESC
+ * CORES
+ * ============================================================
  */
 
-/*
- * Underglow:
- * branco com aproximadamente 20% de intensidade.
- */
 #define UG_R 51
 #define UG_G 51
 #define UG_B 51
 
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-
-/*
- * ============================================================
- * LEFT HALF
- * ============================================================
- */
 
 static const struct led_rgb left_pixels[RGB_KEY_LED_COUNT] = {
 
@@ -141,12 +76,6 @@ static const struct led_rgb left_pixels[RGB_KEY_LED_COUNT] = {
 
 #else
 
-/*
- * ============================================================
- * RIGHT HALF
- * ============================================================
- */
-
 static const struct led_rgb right_pixels[RGB_KEY_LED_COUNT] = {
 
     /* 0-5: underglow */
@@ -197,6 +126,7 @@ static const struct led_rgb right_pixels[RGB_KEY_LED_COUNT] = {
 
 #endif
 
+
 /*
  * ============================================================
  * LED STRIP
@@ -218,11 +148,8 @@ static const struct device *get_led_strip(void)
 
 /*
  * ============================================================
- * RGB KEY BEHAVIOR
+ * APLICA CORES
  * ============================================================
- *
- * param1 = índice do LED
- * param2 = 0xRRGGBB
  */
 
 static int rgb_key_init(void)
@@ -246,18 +173,97 @@ static int rgb_key_init(void)
     );
 }
 
+
+/*
+ * ============================================================
+ * DELAYED BOOT INITIALIZATION
+ * ============================================================
+ *
+ * Esperamos o ZMK/RGB terminar completamente o boot.
+ */
+
+static struct k_work_delayable rgb_boot_work;
+
+static void rgb_boot_work_handler(struct k_work *work)
+{
+    ARG_UNUSED(work);
+
+    rgb_key_init();
+}
+
 static int rgb_key_behavior_init(const struct device *dev)
 {
     ARG_UNUSED(dev);
 
-    return rgb_key_init();
+    k_work_init_delayable(&rgb_boot_work, rgb_boot_work_handler);
+
+    /*
+     * 2 segundos depois da inicialização do comportamento.
+     */
+    k_work_schedule(
+        &rgb_boot_work,
+        K_SECONDS(2)
+    );
+
+    return 0;
 }
+
+
+/*
+ * ============================================================
+ * RGB KEY BEHAVIOR
+ * ============================================================
+ */
+
+static int on_rgb_key_binding_pressed(
+    struct zmk_behavior_binding *binding,
+    struct zmk_behavior_binding_event event
+)
+{
+    return rgb_key_set(
+        binding->param1,
+        binding->param2
+    );
+}
+
+static int on_rgb_key_binding_released(
+    struct zmk_behavior_binding *binding,
+    struct zmk_behavior_binding_event event
+)
+{
+    return ZMK_BEHAVIOR_OPAQUE;
+}
+
+static int rgb_key_set(uint32_t index, uint32_t color)
+{
+    const struct device *strip = get_led_strip();
+
+    if (strip == NULL) {
+        return -ENODEV;
+    }
+
+    if (index >= RGB_KEY_LED_COUNT) {
+        return -EINVAL;
+    }
+
+    pixels[index].r = (color >> 16) & 0xFF;
+    pixels[index].g = (color >> 8) & 0xFF;
+    pixels[index].b = color & 0xFF;
+
+    return led_strip_update_rgb(
+        strip,
+        pixels,
+        RGB_KEY_LED_COUNT
+    );
+}
+
 
 static const struct behavior_driver_api rgb_key_driver_api = {
     .locality = BEHAVIOR_LOCALITY_EVENT_SOURCE,
     .binding_pressed = on_rgb_key_binding_pressed,
     .binding_released = on_rgb_key_binding_released,
 };
+
 
 BEHAVIOR_DT_INST_DEFINE(
     0,

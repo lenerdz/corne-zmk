@@ -7,6 +7,10 @@
     continue-list = <UNDERSCORE>;
 };
 
+&led_strip {
+    chain-length = <10>;
+};
+
 / {
     keymap {
         compatible = "zmk,keymap";

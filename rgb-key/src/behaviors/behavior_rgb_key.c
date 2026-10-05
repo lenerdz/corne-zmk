@@ -2,9 +2,9 @@
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/led_strip.h>
-#include <zephyr/init.h>
 #include <zephyr/sys/util.h>
 #include <errno.h>
+#include <string.h>
 
 #include <drivers/behavior.h>
 #include <zmk/behavior.h>
@@ -22,7 +22,7 @@
 static struct led_rgb pixels[RGB_KEY_LED_COUNT];
 
 /*
- * ============================================================
+ * ============================================================         
  * CORES INICIAIS
  * ============================================================
  *
@@ -215,10 +215,14 @@ static const struct device *get_led_strip(void)
     return strip;
 }
 
+
 /*
  * ============================================================
- * BOOT INITIALIZATION
+ * RGB KEY BEHAVIOR
  * ============================================================
+ *
+ * param1 = índice do LED
+ * param2 = 0xRRGGBB
  */
 
 static int rgb_key_init(void)
@@ -230,21 +234,9 @@ static int rgb_key_init(void)
     }
 
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-
-    memcpy(
-        pixels,
-        left_pixels,
-        sizeof(pixels)
-    );
-
+    memcpy(pixels, left_pixels, sizeof(pixels));
 #else
-
-    memcpy(
-        pixels,
-        right_pixels,
-        sizeof(pixels)
-    );
-
+    memcpy(pixels, right_pixels, sizeof(pixels));
 #endif
 
     return led_strip_update_rgb(
@@ -254,67 +246,11 @@ static int rgb_key_init(void)
     );
 }
 
-/*
- * Executa depois da inicialização dos dispositivos.
- */
-SYS_INIT(
-    rgb_key_init,
-    APPLICATION,
-    90
-);
-
-/*
- * ============================================================
- * RGB KEY BEHAVIOR
- * ============================================================
- *
- * param1 = índice do LED
- * param2 = 0xRRGGBB
- */
-
-static int rgb_key_set(
-    uint32_t index,
-    uint32_t color
-)
+static int rgb_key_behavior_init(const struct device *dev)
 {
-    const struct device *strip = get_led_strip();
+    ARG_UNUSED(dev);
 
-    if (strip == NULL) {
-        return -ENODEV;
-    }
-
-    if (index >= RGB_KEY_LED_COUNT) {
-        return -EINVAL;
-    }
-
-    pixels[index].r = (color >> 16) & 0xFF;
-    pixels[index].g = (color >> 8) & 0xFF;
-    pixels[index].b = color & 0xFF;
-
-    return led_strip_update_rgb(
-        strip,
-        pixels,
-        RGB_KEY_LED_COUNT
-    );
-}
-
-static int on_rgb_key_binding_pressed(
-    struct zmk_behavior_binding *binding,
-    struct zmk_behavior_binding_event event
-)
-{
-    return rgb_key_set(
-        binding->param1,
-        binding->param2
-    );
-}
-
-static int on_rgb_key_binding_released(
-    struct zmk_behavior_binding *binding,
-    struct zmk_behavior_binding_event event
-)
-{
-    return ZMK_BEHAVIOR_OPAQUE;
+    return rgb_key_init();
 }
 
 static const struct behavior_driver_api rgb_key_driver_api = {
@@ -325,11 +261,11 @@ static const struct behavior_driver_api rgb_key_driver_api = {
 
 BEHAVIOR_DT_INST_DEFINE(
     0,
+    rgb_key_behavior_init,
     NULL,
     NULL,
     NULL,
-    NULL,
-    POST_KERNEL,
-    CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,
+    APPLICATION,
+    CONFIG_APPLICATION_INIT_PRIORITY,
     &rgb_key_driver_api
 );

@@ -10,9 +10,46 @@
 
 #define RGB_KEY_LED_COUNT 27
 
-static struct led_rgb pixels[RGB_KEY_LED_COUNT];
+/*
+ * Cada metade do Corne possui:
+ *
+ * 0  - 5   = underglow
+ * 6  - 26  = LEDs das teclas
+ *
+ * O firmware de cada metade possui seu próprio array.
+ */
+static struct led_rgb pixels[RGB_KEY_LED_COUNT] = {
+    /* 0-5: underglow */
+    { 51, 51, 51 },
+    { 51, 51, 51 },
+    { 51, 51, 51 },
+    { 51, 51, 51 },
+    { 51, 51, 51 },
+    { 51, 51, 51 },
 
-static uint8_t test_index = 0;
+    /* 6-26: key LEDs */
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 },
+    { 0, 0, 0 }
+};
 
 static const struct device *get_led_strip(void)
 {
@@ -26,7 +63,7 @@ static const struct device *get_led_strip(void)
     return strip;
 }
 
-static int show_test_led(uint8_t index)
+static int rgb_key_set(uint32_t index, uint32_t color)
 {
     const struct device *strip = get_led_strip();
 
@@ -34,15 +71,18 @@ static int show_test_led(uint8_t index)
         return -ENODEV;
     }
 
-    /* Apaga todos */
-    for (int i = 0; i < RGB_KEY_LED_COUNT; i++) {
-        pixels[i].r = 0;
-        pixels[i].g = 0;
-        pixels[i].b = 0;
+    if (index >= RGB_KEY_LED_COUNT) {
+        return -EINVAL;
     }
 
-    /* LED atual = vermelho */
-    pixels[index].r = 255;
+    /*
+     * param1 = índice do LED
+     * param2 = RGB no formato 0xRRGGBB
+     */
+
+    pixels[index].r = (color >> 16) & 0xFF;
+    pixels[index].g = (color >> 8) & 0xFF;
+    pixels[index].b = color & 0xFF;
 
     return led_strip_update_rgb(
         strip,
@@ -56,19 +96,10 @@ static int on_rgb_key_binding_pressed(
     struct zmk_behavior_binding_event event
 )
 {
-    int ret = show_test_led(test_index);
-
-    if (ret != 0) {
-        return ret;
-    }
-
-    test_index++;
-
-    if (test_index >= RGB_KEY_LED_COUNT) {
-        test_index = 0;
-    }
-
-    return ZMK_BEHAVIOR_OPAQUE;
+    return rgb_key_set(
+        binding->param1,
+        binding->param2
+    );
 }
 
 static int on_rgb_key_binding_released(

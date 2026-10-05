@@ -51,7 +51,7 @@
                 &kp LEFT   &kp DOWN     &kp UP        &kp RIGHT    &trans      &trans
 
                 &rgb_ug RGB_TOG &rgb_ug RGB_EFF &rgb_ug RGB_HUI &rgb_ug RGB_HUD &rgb_ug RGB_BRI &rgb_ug RGB_BRD
-                &rgb_key 0 0xFF0000    &rgb_key 1 0xFF0000 &rgb_key 2 0xFF0000 &rgb_key 3 0xFF0000 &rgb_key 4 0xFF0000 &rgb_key 5 0xFF0000
+                &rgb_key 6 0xFF0000    &rgb_key 7 0x00FF00 &rgb_key 8 0x0000FF &rgb_key 9 0xFF00FF &rgb_key 4 0xFF0000 &rgb_key 5 0xFF0000
 
                 &kp LGUI  &trans &kp SPACE
                 &kp RET   &trans &kp RALT

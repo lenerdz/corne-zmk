@@ -1,0 +1,4 @@
+config ZMK_BEHAVIOR_RGB_KEY
+    bool "RGB Key behavior"
+    default y
+    depends on DT_HAS_ZMK_BEHAVIOR_RGB_KEY_ENABLED

@@ -2,6 +2,7 @@
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/led_strip.h>
+#include <zephyr/init.h>
 #include <zephyr/sys/util.h>
 #include <errno.h>
 
@@ -11,45 +12,196 @@
 #define RGB_KEY_LED_COUNT 27
 
 /*
- * Cada metade do Corne possui:
+ * ============================================================
+ * LED BUFFER
+ * ============================================================
  *
- * 0  - 5   = underglow
- * 6  - 26  = LEDs das teclas
- *
- * O firmware de cada metade possui seu próprio array.
+ * 0-5  = underglow
+ * 6-26 = LEDs das teclas
  */
-static struct led_rgb pixels[RGB_KEY_LED_COUNT] = {
-    /* 0-5: underglow */
-    { 51, 51, 51 },
-    { 51, 51, 51 },
-    { 51, 51, 51 },
-    { 51, 51, 51 },
-    { 51, 51, 51 },
-    { 51, 51, 51 },
+static struct led_rgb pixels[RGB_KEY_LED_COUNT];
 
-    /* 6-26: key LEDs */
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 },
-    { 0, 0, 0 }
+/*
+ * ============================================================
+ * CORES INICIAIS
+ * ============================================================
+ *
+ * LEFT:
+ *
+ *  6  SPACE
+ *  7  B
+ *  8  G
+ *  9  T
+ * 10  R
+ * 11  F
+ * 12  V
+ * 13  LOWER
+ * 14  LGUI
+ * 15  C
+ * 16  D
+ * 17  E
+ * 18  W
+ * 19  S
+ * 20  X
+ * 21  Z
+ * 22  A
+ * 23  Q
+ * 24  TAB
+ * 25  LCTRL
+ * 26  LSHIFT
+ *
+ * RIGHT:
+ *
+ *  6  ENTER
+ *  7  N
+ *  8  H
+ *  9  Y
+ * 10  U
+ * 11  J
+ * 12  M
+ * 13  RAISE
+ * 14  RALT
+ * 15  COMMA
+ * 16  DOT
+ * 17  I
+ * 18  O
+ * 19  K
+ * 20  FSLH
+ * 21  SEMI
+ * 22  L
+ * 23  P
+ * 24  BSPC
+ * 25  SQT
+ * 26  ESC
+ */
+
+/*
+ * Underglow:
+ * branco com aproximadamente 20% de intensidade.
+ */
+#define UG_R 51
+#define UG_G 51
+#define UG_B 51
+
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+
+/*
+ * ============================================================
+ * LEFT HALF
+ * ============================================================
+ */
+
+static const struct led_rgb left_pixels[RGB_KEY_LED_COUNT] = {
+
+    /* 0-5: underglow */
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+
+    /* 6: SPACE */
+    { 255, 0, 255 },
+
+    /* 7-12: B G T R F V */
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+
+    /* 13: LOWER */
+    { 0, 255, 0 },
+
+    /* 14: LGUI */
+    { 255, 255, 0 },
+
+    /* 15-23: C D E W S X Z A Q */
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+
+    /* 24: TAB */
+    { 255, 0, 0 },
+
+    /* 25: LCTRL */
+    { 255, 255, 0 },
+
+    /* 26: LSHIFT */
+    { 255, 255, 0 },
 };
+
+#else
+
+/*
+ * ============================================================
+ * RIGHT HALF
+ * ============================================================
+ */
+
+static const struct led_rgb right_pixels[RGB_KEY_LED_COUNT] = {
+
+    /* 0-5: underglow */
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+    { UG_R, UG_G, UG_B },
+
+    /* 6: ENTER */
+    { 255, 0, 255 },
+
+    /* 7-12: N H Y U J M */
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+
+    /* 13: RAISE */
+    { 0, 255, 0 },
+
+    /* 14: RALT */
+    { 255, 255, 0 },
+
+    /* 15-23: COMMA DOT I O K FSLH SEMI L P */
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+    { 0, 128, 255 },
+
+    /* 24: BSPC */
+    { 255, 0, 0 },
+
+    /* 25: SQT */
+    { 255, 0, 0 },
+
+    /* 26: ESC */
+    { 255, 0, 0 },
+};
+
+#endif
+
+/*
+ * ============================================================
+ * LED STRIP
+ * ============================================================
+ */
 
 static const struct device *get_led_strip(void)
 {
@@ -63,7 +215,67 @@ static const struct device *get_led_strip(void)
     return strip;
 }
 
-static int rgb_key_set(uint32_t index, uint32_t color)
+/*
+ * ============================================================
+ * BOOT INITIALIZATION
+ * ============================================================
+ */
+
+static int rgb_key_init(void)
+{
+    const struct device *strip = get_led_strip();
+
+    if (strip == NULL) {
+        return -ENODEV;
+    }
+
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+
+    memcpy(
+        pixels,
+        left_pixels,
+        sizeof(pixels)
+    );
+
+#else
+
+    memcpy(
+        pixels,
+        right_pixels,
+        sizeof(pixels)
+    );
+
+#endif
+
+    return led_strip_update_rgb(
+        strip,
+        pixels,
+        RGB_KEY_LED_COUNT
+    );
+}
+
+/*
+ * Executa depois da inicialização dos dispositivos.
+ */
+SYS_INIT(
+    rgb_key_init,
+    APPLICATION,
+    90
+);
+
+/*
+ * ============================================================
+ * RGB KEY BEHAVIOR
+ * ============================================================
+ *
+ * param1 = índice do LED
+ * param2 = 0xRRGGBB
+ */
+
+static int rgb_key_set(
+    uint32_t index,
+    uint32_t color
+)
 {
     const struct device *strip = get_led_strip();
 
@@ -74,11 +286,6 @@ static int rgb_key_set(uint32_t index, uint32_t color)
     if (index >= RGB_KEY_LED_COUNT) {
         return -EINVAL;
     }
-
-    /*
-     * param1 = índice do LED
-     * param2 = RGB no formato 0xRRGGBB
-     */
 
     pixels[index].r = (color >> 16) & 0xFF;
     pixels[index].g = (color >> 8) & 0xFF;

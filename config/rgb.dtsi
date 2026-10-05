@@ -1,0 +1,69 @@
+#ifndef RGB_DTSI
+#define RGB_DTSI
+
+/* Cores */
+#define RGB_RED       0xFF0000
+#define RGB_GREEN     0x00FF00
+#define RGB_BLUE      0x0080FF
+#define RGB_YELLOW    0xFFFF00
+#define RGB_PURPLE    0xFF00FF
+#define RGB_CYAN      0x00FFFF
+#define RGB_WHITE     0xFFFFFF
+#define RGB_ORANGE    0xFF8000
+#define RGB_OFF       0x000000
+
+#endif
+
+/*
+ * LEFT
+ *
+ * LED 6  = SPACE
+ * LED 7  = B
+ * LED 8  = G
+ * LED 9  = T
+ * LED 10 = R
+ * LED 11 = F
+ * LED 12 = V
+ * LED 13 = LOWER
+ * LED 14 = LGUI
+ * LED 15 = C
+ * LED 16 = D
+ * LED 17 = E
+ * LED 18 = W
+ * LED 19 = S
+ * LED 20 = X
+ * LED 21 = Z
+ * LED 22 = A
+ * LED 23 = Q
+ * LED 24 = TAB
+ * LED 25 = LCTRL
+ * LED 26 = LSHIFT
+ */
+
+/*
+ * RIGHT
+ *
+ * LED 6  = ENTER
+ * LED 7  = N
+ * LED 8  = H
+ * LED 9  = Y
+ * LED 10 = U
+ * LED 11 = J
+ * LED 12 = M
+ * LED 13 = RAISE
+ * LED 14 = RALT
+ * LED 15 = COMMA
+ * LED 16 = DOT
+ * LED 17 = I
+ * LED 18 = O
+ * LED 19 = K
+ * LED 20 = FSLH
+ * LED 21 = ?
+ * LED 22 = L
+ * LED 23 = P
+ * LED 24 = BSPC
+ * LED 25 = SQT
+ * LED 26 = ESC
+ */
+
+#endif

@@ -1,5 +1,0 @@
-build:
-  cmake: rgb-key
-  kconfig: rgb-key/Kconfig
-  settings:
-    dts_root: rgb-key

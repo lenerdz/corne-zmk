@@ -1,4 +1,0 @@
-build:
-  kconfig: Kconfig
-  settings:
-    dts_root: .

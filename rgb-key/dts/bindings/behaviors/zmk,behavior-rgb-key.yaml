@@ -1,5 +1,0 @@
-description: Set an individual RGB LED color
-
-compatible: "zmk,behavior-rgb-key"
-
-include: two_param.yaml

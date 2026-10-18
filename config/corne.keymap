@@ -2,6 +2,7 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/rgb.h>
+#include <dt-bindings/keypaw/rgb_matrix.h>
 
 &caps_word {
     continue-list = <UNDERSCORE>;
@@ -9,6 +10,193 @@
 
 &led_strip {
     chain-length = <27>;
+};
+
+/*
+ * RGB por tecla (zmk-rgb-matrix)
+ *
+ * Os efeitos, as condicoes e os overlays abaixo precisam ser IDENTICOS nas
+ * duas metades (e estao aqui, no keymap compartilhado, por isso): o efeito e o
+ * overlay sao identificados pela posicao em que foram declarados.
+ * O mapeamento dos LEDs de cada metade fica em corne_left.overlay e
+ * corne_right.overlay.
+ */
+/ {
+    behaviors {
+        kprgb: kprgb {
+            compatible = "keypaw,behavior-rgb-matrix";
+            #binding-cells = <2>;
+            initial-effect = <0>;
+            initial-brightness = <20>;
+            max-brightness = <50>;
+            idle-brightness = <10>;
+
+            // 0 - cor unica (ajuste com RGB_HUI/HUD/SAI/SAD)
+            fx_solid: fx_solid {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0xFF0000>;
+            };
+
+            // 1 - respirando
+            fx_breathe: fx_breathe {
+                compatible = "keypaw,rgb-matrix-breathe";
+                #binding-cells = <0>;
+                color = <0x0000FF>;
+                duration = <3000>;
+            };
+
+            // 2 - todas as teclas ciclam pelo espectro juntas
+            fx_spectrum: fx_spectrum {
+                compatible = "keypaw,rgb-matrix-spectrum";
+                #binding-cells = <0>;
+                duration = <6000>;
+            };
+
+            // 3 - arco-iris varrendo da esquerda para a direita
+            fx_rainbow: fx_rainbow {
+                compatible = "keypaw,rgb-matrix-rainbow";
+                #binding-cells = <0>;
+                color = <0xFFFFFF>;
+                duration = <4000>;
+                basis = "x";
+                direction = "out";
+                palette = "rainbow";
+            };
+
+            // 4 - acende ao redor da tecla pressionada
+            fx_reactive: fx_reactive {
+                compatible = "keypaw,rgb-matrix-reactive";
+                #binding-cells = <0>;
+                color = <0x00FFFF>;
+                spread = "disc";
+                spread-radius = <250>;
+            };
+
+            // 5 - ondas a partir da tecla pressionada
+            fx_ripple: fx_ripple {
+                compatible = "keypaw,rgb-matrix-ripple";
+                #binding-cells = <0>;
+                color = <0x00FFFF>;
+            };
+
+            // 6 - mapa de calor das teclas mais usadas
+            fx_heatmap: fx_heatmap {
+                compatible = "keypaw,rgb-matrix-heatmap";
+                #binding-cells = <0>;
+            };
+
+            // 7 - brilhos aleatorios suaves
+            fx_starlight: fx_starlight {
+                compatible = "keypaw,rgb-matrix-starlight";
+                #binding-cells = <0>;
+                color = <0xFFFFFF>;
+                smooth;
+            };
+        };
+    };
+
+    rgb_conditions: rgb_conditions {
+        compatible = "keypaw,rgb-conditions";
+
+        // Caps Lock do computador
+        cond_caps: cond_caps {
+            compatible = "keypaw,rgb-condition-caps-lock";
+        };
+
+        // Camadas (o numero segue a ordem das camadas no keymap)
+        cond_fn1: cond_fn1 {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <1>;
+        };
+        cond_raise: cond_raise {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <2>;
+        };
+        cond_nav: cond_nav {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <3>;
+        };
+        cond_sys: cond_sys {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <4>;
+        };
+        cond_media: cond_media {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <5>;
+        };
+    };
+
+    // A ordem de declaracao e a ordem de pintura: o ultimo fica por cima.
+    rgb_overlays: rgb_overlays {
+        compatible = "keypaw,rgb-overlays";
+
+        // Underglow (LEDs 0-5 de cada metade) mostra a camada ativa.
+        // Segurando FN1 + SYS ao mesmo tempo, a cor de SYS fica por cima.
+        ov_fn1: ov_fn1 {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_fn1>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_fn1 {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0xFF8000>;
+            };
+        };
+        ov_raise: ov_raise {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_raise>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_raise {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0x0080FF>;
+            };
+        };
+        ov_nav: ov_nav {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_nav>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_nav {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0x00FF00>;
+            };
+        };
+        ov_sys: ov_sys {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_sys>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_sys {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0xFF00FF>;
+            };
+        };
+        ov_media: ov_media {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_media>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_media {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0x00FFFF>;
+            };
+        };
+
+        // Caps Lock: acende a coluna externa da metade esquerda (TAB e as duas
+        // teclas abaixo) em branco.
+        ov_caps: ov_caps {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_caps>;
+            keys = <0 12 24>;
+            fx_ov_caps {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0xFFFFFF>;
+            };
+        };
+    };
 };
 
 / {
@@ -91,19 +279,22 @@
             >;
         };
 
-        // 4 — Bluetooth + RGB (restante da antiga LOWER)
+        // 4 — Bluetooth + RGB
+        //   esquerda: BT na 1a fileira; liga/desliga, efeito, cor e brilho na 2a
+        //   direita : efeitos diretos na 1a fileira; EFR/saturacao/velocidade/
+        //             reset na 2a; mais dois efeitos na 3a
         sys_layer {
             display-name = "SYS";
 
             bindings = <
-                &bt BT_CLR &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4
-                &trans     &trans       &trans       &trans       &trans       &trans
+                &bt BT_CLR      &bt BT_SEL 0    &bt BT_SEL 1    &bt BT_SEL 2    &bt BT_SEL 3    &bt BT_SEL 4
+                &fx_solid       &fx_breathe     &fx_spectrum    &fx_rainbow     &fx_reactive    &fx_ripple
 
-                &rgb_ug RGB_TOG &rgb_ug RGB_EFF &rgb_ug RGB_HUI &rgb_ug RGB_HUD &rgb_ug RGB_BRI &rgb_ug RGB_BRD
-                &trans          &trans          &trans          &trans          &trans          &trans
+                &kprgb RGB_TOG  &kprgb RGB_EFF  &kprgb RGB_HUI  &kprgb RGB_HUD  &kprgb RGB_BRI  &kprgb RGB_BRD
+                &kprgb RGB_EFR  &kprgb RGB_SAI  &kprgb RGB_SAD  &kprgb RGB_SPI  &kprgb RGB_SPD  &kprgb RGB_RESET
 
-                &studio_unlock &trans &trans &trans &trans &trans
-                &trans         &trans &trans &trans &trans &trans
+                &studio_unlock  &trans          &trans          &trans          &trans          &trans
+                &fx_heatmap     &fx_starlight   &trans          &trans          &trans          &trans
 
                 &kp LGUI  &trans    &kp SPACE
                 &kp RET   &trans    &kp RALT

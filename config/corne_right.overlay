@@ -1,0 +1,44 @@
+/*
+ * Matriz RGB da metade DIREITA (zmk-rgb-matrix).
+ *
+ * Espelho da esquerda: mesma ordem de fita, com as posicoes de tecla do lado
+ * direito do physical layout do Corne (6-11, 18-23, 30-35 e polegares 39-41).
+ *
+ *   - LEDs 0-5   : underglow (sem tecla), com coordenadas explicitas
+ *   - LEDs 6-26  : um LED sob cada tecla
+ *
+ * Ordem da fita (de dentro para fora):
+ *   6 polegar interno (ENTER), 7-9 coluna interna de baixo para cima (N H Y),
+ *   10-12 coluna seguinte de cima para baixo (U J M), 13 polegar do meio,
+ *   14 polegar externo, 15-17 (COMMA K I), 18-20 (O L DOT), 21-23 (LBKT SEMI P),
+ *   24-26 coluna externa de cima para baixo (BSPC SQT RBKT).
+ */
+
+#include <dt-bindings/keypaw/rgb_matrix.h>
+
+/ {
+    rgb_matrix: rgb-matrix {
+        compatible = "keypaw,rgb-matrix";
+        strip = <&led_strip>;
+        physical-layout = <&foostan_corne_6col_layout>;
+
+        mapping = <
+            /* 0-5: underglow */
+            KP_RGB_NO_KEY(850, 144)
+            KP_RGB_NO_KEY(1056, 126)
+            KP_RGB_NO_KEY(1256, 168)
+            KP_RGB_NO_KEY(1256, 273)
+            KP_RGB_NO_KEY(1056, 332)
+            KP_RGB_NO_KEY(850, 356)
+
+            /* 6-14: RET N H Y U J M (mo 2) RALT */
+            39 30 18 6 7 19 31 40 41
+
+            /* 15-23: COMMA K I O L DOT LBKT SEMI P */
+            32 20 8 9 21 33 34 22 10
+
+            /* 24-26: coluna externa (BSPC, linha do meio, linha de baixo) */
+            11 23 35
+        >;
+    };
+};

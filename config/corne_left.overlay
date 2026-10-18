@@ -1,0 +1,44 @@
+/*
+ * Matriz RGB da metade ESQUERDA (zmk-rgb-matrix).
+ *
+ * "mapping" lista os 27 LEDs na ordem em que estao ligados na fita (chain):
+ *   - LEDs 0-5   : underglow (sem tecla), com coordenadas explicitas
+ *   - LEDs 6-26  : um LED sob cada tecla, indicado pela posicao da tecla no
+ *                  physical layout do Corne (a mesma numeracao do keymap)
+ *
+ * Coordenadas usam as unidades do layout (100 = largura de uma tecla).
+ * Ordem da fita no Corne (serpentina), de dentro para fora:
+ *   6 polegar interno (SPACE), 7-9 coluna interna de baixo para cima (B G T),
+ *   10-12 coluna seguinte de cima para baixo (R F V), 13 polegar do meio,
+ *   14 polegar externo, 15-17 (C D E), 18-20 (W S X), 21-23 (Z A Q),
+ *   24-26 coluna externa de cima para baixo.
+ */
+
+#include <dt-bindings/keypaw/rgb_matrix.h>
+
+/ {
+    rgb_matrix: rgb-matrix {
+        compatible = "keypaw,rgb-matrix";
+        strip = <&led_strip>;
+        physical-layout = <&foostan_corne_6col_layout>;
+
+        mapping = <
+            /* 0-5: underglow */
+            KP_RGB_NO_KEY(550, 144)
+            KP_RGB_NO_KEY(344, 126)
+            KP_RGB_NO_KEY(144, 168)
+            KP_RGB_NO_KEY(144, 273)
+            KP_RGB_NO_KEY(344, 332)
+            KP_RGB_NO_KEY(550, 356)
+
+            /* 6-14: SPACE B G T R F V (mo 1) LGUI */
+            38 29 17 5 4 16 28 37 36
+
+            /* 15-23: C D E W S X Z A Q */
+            27 15 3 2 14 26 25 13 1
+
+            /* 24-26: coluna externa (TAB, linha do meio, linha de baixo) */
+            0 12 24
+        >;
+    };
+};

@@ -4,9 +4,11 @@ manifest:
       url-base: https://github.com/zmkfirmware
     # Additional modules containing boards/shields/custom code can be listed here as well
     # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
-    # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades
-    - name: gudzpoz
-      url-base: https://github.com/gudzpoz
+    # zmk-rgb-matrix: RGB por tecla (posicao-aware) com efeitos, overlays e sync
+    # entre as metades. Vem de um fork de https://github.com/gudzpoz/zmk-rgb-matrix
+    # com a correcao de 1 linha que faltava para compilar com o ZMK Studio ligado.
+    - name: lenerdz
+      url-base: https://github.com/lenerdz
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -16,8 +18,10 @@ manifest:
       revision: 4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
       import: app/west.yml
     - name: zmk-rgb-matrix
-      remote: gudzpoz
-      # Commit de 2026-10-08: "test: more tests in preparation for selector overlay"
-      revision: a9add033e85fb0f2982a43ad93adf80b7d97fa06
+      remote: lenerdz
+      # Commit 98070e1 do branch fix/behavior-metadata-sets-type do fork, que parte
+      # do a9add03 do upstream (2026-10-08). Voltar para o upstream
+      # (remote gudzpoz) quando o autor corrigir a linha.
+      revision: 98070e157b8920b58cc30907b6e1f303ddc865d5
   self:
     path: config

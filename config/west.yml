@@ -6,7 +6,8 @@ manifest:
     # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
     # zmk-rgb-matrix: RGB por tecla (posicao-aware) com efeitos, overlays e sync
     # entre as metades. Vem de um fork de https://github.com/gudzpoz/zmk-rgb-matrix
-    # com a correcao de 1 linha que faltava para compilar com o ZMK Studio ligado.
+    # com 2 correcoes: compilar com o ZMK Studio ligado e usar o layout fisico
+    # certo (sem isso as teclas do polegar nao reagem nos efeitos por posicao).
     - name: lenerdz
       url-base: https://github.com/lenerdz
   projects:
@@ -19,9 +20,9 @@ manifest:
       import: app/west.yml
     - name: zmk-rgb-matrix
       remote: lenerdz
-      # Commit 98070e1 do branch fix/behavior-metadata-sets-type do fork, que parte
-      # do a9add03 do upstream (2026-10-08). Voltar para o upstream
-      # (remote gudzpoz) quando o autor corrigir a linha.
-      revision: 98070e157b8920b58cc30907b6e1f303ddc865d5
+      # Branch corne-fixes do fork (commit 7b72be8) = upstream a9add03
+      # (2026-10-08) + fix/behavior-metadata-sets-type + fix/physical-layout-lookup.
+      # Voltar para o upstream (remote gudzpoz) quando o autor corrigir os dois.
+      revision: 7b72be809777d87d25848194063ff25f04f0f04e
   self:
     path: config

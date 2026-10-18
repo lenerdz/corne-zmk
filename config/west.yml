@@ -10,6 +10,11 @@ manifest:
     # certo (sem isso as teclas do polegar nao reagem nos efeitos por posicao).
     - name: lenerdz
       url-base: https://github.com/lenerdz
+    # zmk-nice-oled: widgets verticais para a tela OLED. O upstream (mctechnology17)
+    # ainda esta no ZMK v0.3.0 (LVGL 8); a migracao para o ZMK main (Zephyr 4.1 +
+    # LVGL 9) e o PR #37, que vem do fork de tokyo2006.
+    - name: tokyo2006
+      url-base: https://github.com/tokyo2006
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -24,5 +29,11 @@ manifest:
       # (2026-10-08) + fix/behavior-metadata-sets-type + fix/physical-layout-lookup.
       # Voltar para o upstream (remote gudzpoz) quando o autor corrigir os dois.
       revision: 7b72be809777d87d25848194063ff25f04f0f04e
+    - name: zmk-nice-oled
+      remote: tokyo2006
+      # PR #37 de mctechnology17/zmk-nice-oled ("migrate to ZMK main (Zephyr 4.1 +
+      # LVGL 9)"), branch 4.0, commit de5b2af (2026-08-15). Voltar para o upstream
+      # (remote mctechnology17, revision main) quando o PR for aceito.
+      revision: de5b2afbd05f1a136e31ca28659373cd07d1e443
   self:
     path: config

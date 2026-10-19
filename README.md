@@ -1077,7 +1077,7 @@ As alternativas estão comentadas no próprio `corne_right.conf`: outra animaç�
 
 Todas as opções `CONFIG_NICE_OLED_*`, com padrões e descrições, estão no [README do fork em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md).
 
-Antes de as opções da central irem para o `corne_left.conf`, elas ficavam no `corne.conf`, valiam para as duas metades e o build da direita mostrava avisos do Kconfig sobre os widgets de WPM do `nice_oled`. Agora o build da direita não as define.
+Antes de as opções da central irem para o `corne_left.conf`, elas ficavam no `corne.conf`, valiam para as duas metades e o build da direita mostrava avisos do Kconfig sobre os widgets de WPM do `nice_oled`. Agora o build da direita não as define: o log do GitHub Actions desta mudança não tem mais esses avisos (o `.config` das duas metades também confirma as opções de cada arquivo).
 
 ## Compilar e gravar o firmware
 
@@ -1203,7 +1203,7 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | `&steno_off` digitou `erfvtu` na janela | O Plover estava suspenso ou fechado: o comando de suspender só vale com a saída do Plover ligada. Use `&to 0` para voltar ao QWERTY sem acorde. **Não testado neste teclado**: baseado no código do Plover |
 | A camada STENO só digita letras e o Plover não traduz | O Plover pode estar suspenso ou fora de sincronia com o teclado. Toque `&steno_on` outra vez ou ligue a saída pelo próprio Plover |
 | O build da esquerda falha com `more colour maps than the LedInfo of the protocol can list` | Há mais de 8 mapas de cor (`layer-id`). Aumente `layer_ids max_count` em `proto/zmk/keymap.options.in` do fork `lenerdz/zmk-studio-messages` e atualize o pin em `config/west.yml` (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)) |
-| Avisos do Kconfig sobre widgets de WPM, modificadores ou bateria no build da metade direita | As opções dos widgets da central ficam em `config/corne_left.conf`. Se os avisos voltarem, alguma delas foi parar no `corne.conf` ou no `corne_right.conf` |
+| Avisos do Kconfig sobre widgets de WPM, modificadores ou bateria no build da metade direita | As opções dos widgets da central ficam em `config/corne_left.conf`. Se os avisos voltarem, alguma delas foi parar no `corne.conf` ou no `corne_right.conf`. O aviso sobre `ZMK_USB` (a periférica não tem a dependência de USB do ZMK) é esperado e continua aparecendo |
 
 ## Manter este README atualizado
 

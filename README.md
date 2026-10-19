@@ -23,6 +23,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
   - [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock)
   - [Slots de cor](#slots-de-cor)
   - [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)
+    - [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)
   - [O que é salvo na memória](#o-que-é-salvo-na-memória)
   - [Guia de configuração](#guia-de-configuração)
     - [Aplicar uma mudança no teclado](#aplicar-uma-mudança-no-teclado)
@@ -30,6 +31,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
     - [Mudar o brilho e o efeito inicial](#mudar-o-brilho-e-o-efeito-inicial)
     - [Manter as luzes acesas quando o teclado fica ocioso](#manter-as-luzes-acesas-quando-o-teclado-fica-ocioso)
     - [Mudar a cor de uma tecla ou de um LED em uma camada](#mudar-a-cor-de-uma-tecla-ou-de-um-led-em-uma-camada)
+    - [Tornar as cores editadas na aba Lights os novos padrões](#tornar-as-cores-editadas-na-aba-lights-os-novos-padrões)
     - [Deixar o efeito aparecer por baixo do mapa de uma camada](#deixar-o-efeito-aparecer-por-baixo-do-mapa-de-uma-camada)
     - [Mudar quais LEDs um overlay pinta](#mudar-quais-leds-um-overlay-pinta)
     - [Adicionar um efeito novo](#adicionar-um-efeito-novo)
@@ -71,9 +73,9 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 ### Recursos
 
 - **6 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS e MEDIA. Veja [Camadas](#camadas).
-- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada) e indicador de Caps Lock. O firmware também deixa **editar e salvar** esses mapas pelo protocolo do ZMK Studio (o app ainda não tem a tela para isso). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
+- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada) e indicador de Caps Lock. As cores de cada mapa podem ser **editadas e salvas no teclado**, sem recompilar, pela aba **Lights** do fork do app do ZMK Studio (não testado neste teclado). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
 - **Telas OLED verticais** (nice!oled): saída (USB ou Bluetooth), bateria, perfil Bluetooth, velocidade de digitação e camada ativa. A tela nunca apaga. Veja [Telas OLED](#telas-oled).
-- **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes e camadas. Veja [ZMK Studio](#zmk-studio).
+- **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes e camadas e tem a aba **Lights** para editar as cores das luzes. Veja [ZMK Studio](#zmk-studio).
 - **Bluetooth com 5 perfis**, **NKRO** e **Caps Word**. Veja [Funções e recursos](#funções-e-recursos).
 - **Build automático** pelo GitHub Actions, com versões fixadas do ZMK e dos módulos para que o resultado seja reproduzível. Veja [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas).
 
@@ -86,7 +88,8 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 ├── build.yaml                    matriz de builds: placas, shields, snippets e nomes dos artefatos
 ├── config/
 │   ├── corne.keymap              teclas, camadas e toda a configuração das luzes (efeitos, condições, overlays)
-│   ├── corne.conf                opções Kconfig: telas, Bluetooth, NKRO, energia, luzes
+│   ├── corne.conf                opções Kconfig das duas metades: telas, Bluetooth, NKRO, energia, luzes
+│   ├── corne_left.conf           opções Kconfig só da metade esquerda: buffer de recepção do ZMK Studio
 │   ├── corne_left.overlay        mapa dos LEDs da metade esquerda e os slots de cor dela (slot-count, no-key-slots)
 │   ├── corne_right.overlay       mapa dos LEDs da metade direita e os slots de cor dela (slot-count, no-key-slots)
 │   ├── led_colors.dtsi           cores padrão de cada slot em cada camada (incluído no fim do corne.keymap)
@@ -98,6 +101,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 
 - Os shields `corne_left` e `corne_right` vêm do próprio ZMK. Este repositório só acrescenta o keymap, as opções, os mapas de LED e de slots de cor, as cores padrão de cada slot em cada camada e a lista de módulos.
 - `config/led_colors.dtsi` é o arquivo a editar para mudar as cores padrão de cada LED em cada camada. O `config/corne.keymap` o inclui no final. As cores são indexadas por slot e valem para as duas metades. Veja [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
+- `config/corne_left.conf` vale só para o build da metade esquerda: o ZMK aplica o `config/<shield>.conf` de cada shield do build, e o `corne.conf` vale para as duas metades. Hoje ele só define o buffer de recepção do ZMK Studio (veja [ZMK Studio](#zmk-studio)).
 - `config/rgb.dtsi` é resto da configuração antiga de underglow (macros de cor e anotações do mapa de LEDs da época). Nenhum arquivo o inclui, então ele não afeta o firmware. O mapa de LEDs vigente está nos arquivos `.overlay` e na seção [Mapa dos LEDs](#mapa-dos-leds).
 - [`SUGESTOES.md`](SUGESTOES.md) reúne ideias de melhoria do layout (acesso a NAV, home row mods, combos etc.).
 
@@ -250,10 +254,10 @@ ENTER     --        RALT
 
 ### ZMK Studio
 
-O ZMK Studio permite editar teclas pelo navegador, sem recompilar. Ele está habilitado só na metade esquerda: em `build.yaml`, o build `corne_left` usa o snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y`.
+O ZMK Studio permite editar teclas pelo navegador, sem recompilar. Ele está habilitado só na metade esquerda: em `build.yaml`, o build `corne_left` usa o snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y`. O `config/corne_left.conf` define `CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256`, o tamanho do buffer em que o ZMK Studio recebe os pedidos do app: o padrão do ZMK (30 bytes) descarta os bytes que não cabem, e um pedido que edita 16 cores de LED tem 158 bytes (até cerca de 210 com escapes). O módulo zmk-rgb-matrix confere o valor: a compilação da esquerda falha com menos de 256.
 
 1. Conecte a **metade esquerda** ao computador por USB.
-2. Abra o app em um navegador baseado em Chromium e conecte ao teclado: [zmk.studio](https://zmk.studio) (o app oficial) ou o [fork não oficial deste projeto](https://lenerdz.github.io/zmk-studio/), que desenha ícones nas teclas (veja [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)).
+2. Abra o app em um navegador baseado em Chromium e conecte ao teclado: [zmk.studio](https://zmk.studio) (o app oficial) ou o [fork não oficial deste projeto](https://lenerdz.github.io/zmk-studio/), que desenha ícones nas teclas (veja [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)) e tem a aba **Lights** para editar as cores das luzes (veja [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)).
 3. Para liberar a edição, pressione a tecla `&studio_unlock`: camada RAISE, posição 13, ou camada SYS, posição 24.
 
 > **Atenção:** depois que você usar o ZMK Studio para gerenciar as teclas, mudanças futuras no arquivo `.keymap` não são aplicadas até você executar a ação "Restore Stock Settings" na interface do Studio (ou gravar o `settings_reset` nas duas metades). É o comportamento documentado pelo ZMK. Em geral, escolha um dos dois caminhos para as teclas: o Studio ou o `.keymap`.
@@ -276,9 +280,9 @@ O app oficial desenha cada tecla como o nome do comportamento e, embaixo, o prim
 | `&studio_unlock`, `&caps_word`, `&trans` | cadeado aberto, seta do Caps Word e seta dupla esmaecida |
 | Teclas de mídia (`C_MUTE`, `C_VOL_UP`, `C_BRI_UP`, ...) | ícones, no lugar dos emojis do app oficial |
 
-O fork não altera o protocolo nem o que é gravado no teclado: a edição, o salvamento e o "Restore Stock Settings" seguem o mesmo caminho do app oficial. Ele só muda o desenho das teclas e a hospedagem do app. Veja [Por que existem os forks](#por-que-existem-os-forks).
+Os ícones não alteram o protocolo nem o que é gravado no teclado: a edição das teclas, o salvamento e o "Restore Stock Settings" seguem o mesmo caminho do app oficial. Além do desenho das teclas e da hospedagem do app, o fork acrescenta a aba **Lights**, que usa as requisições novas do firmware (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)). Veja [Por que existem os forks](#por-que-existem-os-forks).
 
-**Testado neste teclado.** O fork foi usado com este teclado conectado por USB e os ícones e rótulos funcionaram (relato do dono do teclado). Também foi verificado nas stories do Storybook do fork, com as seis camadas deste `corne.keymap`; os nomes dos comportamentos usados nelas vêm do código-fonte do ZMK e do zmk-rgb-matrix. O app só mostra o que o firmware informa: se uma tecla aparecer vazia ou com um rótulo estranho, passe o mouse sobre ela para ver o nome do comportamento.
+**Testado neste teclado.** O fork, na versão que só tinha os ícones (antes da aba Lights), foi usado com este teclado conectado por USB e os ícones e rótulos funcionaram (relato do dono do teclado). Também foi verificado nas stories do Storybook do fork, com as seis camadas deste `corne.keymap`; os nomes dos comportamentos usados nelas vêm do código-fonte do ZMK e do zmk-rgb-matrix. O app só mostra o que o firmware informa: se uma tecla aparecer vazia ou com um rótulo estranho, passe o mouse sobre ela para ver o nome do comportamento.
 
 ## Luzes (RGB por tecla e underglow)
 
@@ -413,9 +417,9 @@ O limite é 60 slots (`slot-count` até 60): o registro que o firmware grava na 
 
 ### Mapas de cor editáveis pelo ZMK Studio
 
-O firmware deixa ler, alterar, salvar e descartar as cores de cada mapa de camada pelo protocolo do ZMK Studio, sem recompilar. **Ainda não existe tela para isso**: nem o app oficial nem o [fork do app](https://github.com/lenerdz/zmk-studio) têm uma aba de luzes. Hoje só existe o lado do firmware.
+O firmware deixa ler, alterar, salvar e descartar as cores de cada mapa de camada pelo protocolo do ZMK Studio, sem recompilar. A tela para isso é a aba **Lights** do [fork do app](https://github.com/lenerdz/zmk-studio) (veja [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)); o app oficial não tem essa aba.
 
-**Não testado neste teclado.** Nenhum cliente chamou essas requisições ainda. O codec do registro salvo na memória e partes da sincronização têm testes de unidade que rodam no computador; o restante foi escrito a partir da leitura do código do ZMK e do módulo e ainda depende do build do GitHub Actions e de um teste no teclado.
+**Não testado neste teclado.** A aba Lights foi testada em um navegador contra um teclado de demonstração que usa a mesma moldura (framing) e a mesma codificação de mensagens de um teclado real, e tem testes automáticos. O firmware compila no GitHub Actions. Nunca foram experimentados no teclado: a edição ao vivo, o salvamento na memória, o descarte, o "Restore Stock Settings", o `RGB_RESET` e a cópia para a metade direita. O codec do registro salvo na memória e partes da sincronização têm testes de unidade que rodam no computador.
 
 **Como um mapa se comporta.** Cada mapa (um efeito `static` com `layer-id`) guarda três cópias das cores, uma por slot:
 
@@ -444,11 +448,25 @@ O firmware deixa ler, alterar, salvar e descartar as cores de cada mapa de camad
 
 O firmware também envia a notificação `unsaved_led_changes_status_changed` (ID 100): `true` quando alguma cor ao vivo fica diferente da salva e `false` quando deixa de ficar. O ZMK Studio já tem a sua própria noção de alterações não salvas (teclas e camadas); um cliente precisa juntar as duas.
 
-**Protocolo.** O ZMK traz o protocolo como o módulo `zmk-studio-messages` (em `app/west.yml`). O `config/west.yml` o substitui, com o mesmo nome e caminho, pelo fork, que parte do mesmo commit do ZMK (`6cb4c28`) e acrescenta um commit (`cfcce43`). Sem o fork o módulo não compila com o ZMK Studio ligado. A opção `CONFIG_KEYPAW_RGB_MAPS_STUDIO` liga as requisições e vem ligada quando o ZMK Studio está no build (só no firmware da esquerda). Os apps que não conhecem as requisições novas continuam editando teclas normalmente: o app oficial não as envia (não testado neste teclado com o app oficial).
+**Protocolo.** O ZMK traz o protocolo como o módulo `zmk-studio-messages` (em `app/west.yml`). O `config/west.yml` o substitui, com o mesmo nome e caminho, pelo fork, que parte do mesmo commit do ZMK (`6cb4c28`) e acrescenta um commit (`cfcce43`). Sem o fork o módulo não compila com o ZMK Studio ligado. A opção `CONFIG_KEYPAW_RGB_MAPS_STUDIO` liga as requisições e vem ligada quando o ZMK Studio está no build (só no firmware da esquerda). Os apps que não conhecem as requisições novas continuam editando teclas normalmente: o app oficial não as envia (não testado neste teclado com o app oficial). O fork do app as usa por um cliente TypeScript gerado a partir do mesmo protocolo (`src/vendor/zmk-studio-ts-client`, na revisão `cfcce43`).
 
 **Metade direita.** Quem salva é a central, e a periférica nunca grava os mapas. Cada edição vira um comando interno por slot (`RGB_MAP_SET_CMD`) enviado à periférica, um por vez, com 50 ms entre eles. Quando a periférica conecta (ou reinicia), a central manda primeiro um comando que volta os mapas dela ao padrão (`RGB_MAP_RESET_CMD`) e depois só os slots dela cuja cor difere do padrão. Se a metade direita for desligada, ela volta às cores padrão do firmware dela e recebe as edições de novo ao reconectar. Como a periférica parte do padrão do próprio firmware, grave a metade que você mudou em `led_colors.dtsi`. **Não testado neste teclado**: a sincronização por Bluetooth só pode ser conferida no teclado.
 
-**Limites.** `slot-count` até 60; no protocolo do fork, a lista `colors` de `LedMap` tem 54 posições (com mais slots é preciso aumentar `colors max_count` em `proto/zmk/keymap.options.in` do fork e o firmware avisa na compilação). IDs de camada de 0 a 14. No máximo 8 mapas em `get_led_info` e 16 slots por `set_led_colors`.
+**Limites.** `slot-count` até 60; no protocolo do fork, a lista `colors` de `LedMap` tem 54 posições (com mais slots é preciso aumentar `colors max_count` em `proto/zmk/keymap.options.in` do fork e o firmware avisa na compilação). IDs de camada de 0 a 14. No máximo 8 mapas em `get_led_info` e 16 slots por `set_led_colors`. O buffer de recepção do ZMK Studio precisa ter pelo menos 256 bytes (`CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256`, em `config/corne_left.conf`): um `set_led_colors` com 16 slots tem 158 bytes depois do enquadramento (até cerca de 210 com escapes) e o padrão do ZMK (30 bytes) descarta o que não cabe. A compilação falha com um valor menor.
+
+#### Editar as cores na aba Lights
+
+1. Grave o firmware nas duas metades, conecte a **metade esquerda** por USB e abra o [fork do app](https://lenerdz.github.io/zmk-studio/) em um navegador baseado em Chromium. Conecte ao teclado e desbloqueie com `&studio_unlock` (veja [ZMK Studio](#zmk-studio)).
+2. Depois de desbloquear, o cabeçalho ganha o botão **Lights**, ao lado de **Keys** (o editor de teclas). O app só o oferece quando o firmware tem os mapas editáveis; se ele não aparecer, veja [Solução de problemas](#solução-de-problemas).
+3. Escolha uma camada na lista da esquerda. O desenho mostra cada tecla com o seu rótulo e a cor do LED dela. Os LEDs de underglow, que não têm tecla, são as células redondas da faixa sob as teclas (numeradas de 1 a 6 em cada metade).
+4. Escolha uma cor (uma das 14 cores da paleta do `led_colors.dtsi`, o seletor de cor do sistema ou um valor hexadecimal) e arraste sobre os LEDs com **Paint**. O app mostra a cor enquanto você pinta e envia o traço quando você solta; o teclado mostra a cor na hora. As células também funcionam pelo teclado do computador (Tab para andar, Enter ou Espaço para pintar).
+   - **Pick** pega a cor de um LED.
+   - **Fill** preenche todos os LEDs da camada (**All**), só as teclas (**Keys**) ou só o underglow (**Underglow**).
+   - **Restore layer defaults** devolve a camada às cores com que o firmware foi compilado.
+5. A edição fica só na memória viva do teclado até você clicar em **Save** (canto superior direito), que salva as luzes junto com as teclas. **Discard** descarta as duas coisas, e **Undo** e **Redo** valem para as duas, na ordem em que você fez. O "Restore Stock Settings" do menu do teclado conectado também devolve as cores de fábrica.
+6. Para tornar as cores editadas as cores padrão do firmware, use **Export led_colors.dtsi** (veja [Tornar as cores editadas na aba Lights os novos padrões](#tornar-as-cores-editadas-na-aba-lights-os-novos-padrões)).
+
+Para ver a aba sem o teclado, abra o app com `?demo` no endereço (<https://lenerdz.github.io/zmk-studio/?demo>): o diálogo de conexão ganha o "Demo keyboard", um teclado que roda no próprio navegador, e o "Demo keyboard (no light maps)", que responde como um firmware sem os mapas (e então a aba não é oferecida). O código da aba, o protocolo e os testes estão no [`src/lights/README.md`](https://github.com/lenerdz/zmk-studio/blob/main/src/lights/README.md) do fork (em inglês).
 
 ### O que é salvo na memória
 
@@ -459,7 +477,7 @@ O módulo guarda o estado das luzes na memória do teclado (`CONFIG_SETTINGS`), 
 | ligado ou desligado, brilho e efeito selecionado | sim, sempre | gravados 60 s depois da última alteração (`CONFIG_ZMK_SETTINGS_SAVE_DEBOUNCE`, padrão do ZMK). Se desligar o teclado antes disso, a última alteração se perde |
 | matiz, saturação e velocidade ajustados com `RGB_HUI`, `RGB_HUD`, `RGB_SAI`, `RGB_SAD`, `RGB_SPI` e `RGB_SPD` | só nos efeitos que têm `persist-id` | **neste repositório nenhum efeito tem `persist-id`**, então esses ajustes voltam aos valores do keymap ao reiniciar. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
 | cores padrão dos mapas por camada (`config/led_colors.dtsi`) | não, fazem parte do firmware | só mudam ao gravar um firmware novo na metade correspondente |
-| cores dos mapas por camada editadas pelo ZMK Studio | só quando você salva (`save_led_changes`) | um registro por camada na memória da metade esquerda, só com os slots diferentes do padrão. A metade direita não grava nada: recebe as cores da esquerda ao conectar. Os slots salvos valem no lugar do padrão, e `RGB_RESET` apaga os registros. Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) |
+| cores dos mapas por camada editadas pelo ZMK Studio | só quando você salva (botão **Save** do app, que envia `save_led_changes`) | um registro por camada na memória da metade esquerda, só com os slots diferentes do padrão. A metade direita não grava nada: recebe as cores da esquerda ao conectar. Os slots salvos valem no lugar do padrão, e `RGB_RESET` apaga os registros. Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) |
 
 O estado salvo tem prioridade sobre os valores iniciais do `kprgb`: depois que você muda o efeito, o brilho ou o liga/desliga pelas teclas, `initial-effect` e `initial-brightness` deixam de valer naquele teclado.
 
@@ -555,6 +573,17 @@ Cuidados:
 - Cada grupo tem exatamente 27 valores, separados por vírgulas. Com outro número o build falha (veja [Solução de problemas](#solução-de-problemas)).
 - Dentro de `LED_SLOTS(...)` use só comentários `/* ... */`. Um comentário `//` apaga o resto da linha depois do pré-processador e as cores seguintes se perdem sem aviso.
 - O grupo da esquerda vale só para a metade esquerda, e o da direita só para a direita.
+
+#### Tornar as cores editadas na aba Lights os novos padrões
+
+As cores que você pinta e salva na aba Lights ficam na memória do teclado e valem no lugar das padrão, mas o firmware compilado continua com as cores de `config/led_colors.dtsi`. Para que as cores editadas virem as padrão (por exemplo, para o teclado voltar a elas depois de um `RGB_RESET` ou de um `settings_reset`):
+
+1. Na aba Lights, clique em **Export led_colors.dtsi**. O botão só fica habilitado para este teclado (54 LEDs por camada e as camadas 0 a 5). O arquivo baixado tem a mesma estrutura do `config/led_colors.dtsi` (a paleta, a macro `LED_SLOTS` e um bloco por camada) e as cores de todas as camadas como estão no teclado agora, inclusive as que ainda não foram salvas. Só os comentários de cada linha diferem: os nomes das teclas vêm do teclado e o título de cada camada não tem a cor de destaque.
+2. Substitua o `config/led_colors.dtsi` do repositório pelo arquivo baixado.
+3. Faça commit e push, baixe o firmware e grave as duas metades.
+4. Aperte `RGB_RESET` (camada SYS, posição 23) para apagar os registros salvos, que passaram a ser iguais às cores padrão e não têm mais função. Ele também volta o efeito e o brilho aos valores do keymap.
+
+**Não testada neste teclado.** O arquivo exportado a partir do teclado de demonstração (com as cores padrão deste repositório) foi comparado por script com o `config/led_colors.dtsi`: sem os comentários, os dois têm os mesmos símbolos na mesma ordem (cores, macro e pontuação) e o mesmo número de linhas, então o arquivo exportado sem edições compila nas mesmas cores. A receita inteira (exportar, substituir, gravar) nunca foi feita no teclado.
 
 #### Deixar o efeito aparecer por baixo do mapa de uma camada
 
@@ -903,7 +932,7 @@ O workflow `.github/workflows/build.yml` roda a cada push, a cada pull request e
 
 | Artefato | Shield | Observações |
 |---|---|---|
-| `corne_left` | `corne_left nice_oled` | snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y` (ZMK Studio) |
+| `corne_left` | `corne_left nice_oled` | snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y` (ZMK Studio), mais as opções de `config/corne_left.conf` (buffer de recepção do ZMK Studio) |
 | `corne_right` | `corne_right nice_oled` | metade periférica |
 | `settings_reset` | `settings_reset` | limpa as configurações salvas |
 
@@ -933,7 +962,7 @@ Grave **as duas metades** sempre que mudar efeitos, condições, overlays ou o k
 
 ### Limpar as configurações salvas (settings_reset)
 
-O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth, o estado das luzes e as alterações salvas pelo ZMK Studio. Use quando houver comportamento estranho depois de uma atualização grande, problema de pareamento entre as metades ou entre o teclado e o computador, ou para descartar as edições do Studio.
+O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth, o estado das luzes (inclusive as cores editadas e salvas pela aba Lights) e as alterações salvas pelo ZMK Studio. Use quando houver comportamento estranho depois de uma atualização grande, problema de pareamento entre as metades ou entre o teclado e o computador, ou para descartar as edições do Studio.
 
 1. Grave o `settings_reset.uf2` nas **duas** metades.
 2. Grave `corne_left.uf2` e `corne_right.uf2` nas respectivas metades.
@@ -948,11 +977,11 @@ O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth
 | Componente | Origem | Revisão fixada | Observação |
 |---|---|---|---|
 | ZMK | `zmkfirmware/zmk`, branch `main` | `4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85` (2026-10-09) | Zephyr 4.1. O mesmo commit é usado no `ref` de `.github/workflows/build.yml` |
-| zmk-rgb-matrix | `lenerdz/zmk-rgb-matrix`, branch `corne-fixes` | `6ebecb4bdd21bc6ca2969a1bac4879b166858d8c` | upstream `gudzpoz/zmk-rgb-matrix` em `a9add03` (2026-10-08) mais duas correções e os mapas de cor editáveis |
+| zmk-rgb-matrix | `lenerdz/zmk-rgb-matrix`, branch `corne-fixes` | `c4bf112fe47bc5c93da310acfd6c2c92dbbe6874` | upstream `gudzpoz/zmk-rgb-matrix` em `a9add03` (2026-10-08) mais duas correções e os mapas de cor editáveis |
 | zmk-nice-oled | `lenerdz/zmk-nice-oled`, branch `zmk-main` | `479a516e01c942df79567475e424de4d1560e28c` | PR #37 do upstream (`de5b2af`) mais a correção do transporte `NONE` |
 | zmk-studio-messages | `lenerdz/zmk-studio-messages`, branch `main` | `cfcce43b2156151fcd09902de1f4887be387b905` | `zmkfirmware/zmk-studio-messages` em `6cb4c28` (o commit que o ZMK fixa) mais as requisições dos mapas de cor. Substitui o módulo de mesmo nome que o ZMK importa |
 
-A ponta da branch `zmk-main` (`ae83011`) tem um commit a mais, só de documentação (`README.pt-BR.md`); o pin não foi movido para ele para que o firmware compilado continue idêntico. A ponta da `corne-fixes` (`6ebecb4`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins.
+A ponta da branch `zmk-main` (`ae83011`) tem um commit a mais, só de documentação (`README.pt-BR.md`); o pin não foi movido para ele para que o firmware compilado continue idêntico. A ponta da `corne-fixes` (`c4bf112`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins.
 
 O app web ZMK Studio do fork `lenerdz/zmk-studio` não aparece no `west.yml`: ele não faz parte do firmware. Veja [Por que existem os forks](#por-que-existem-os-forks).
 
@@ -962,15 +991,15 @@ O app web ZMK Studio do fork `lenerdz/zmk-studio` não aparece no `west.yml`: el
 
 1. `fix/behavior-metadata-sets-type` (`98070e1`): o tipo do vetor `sets[]` em `behavior_rgb_matrix.c` causava erro de compilação quando o ZMK Studio está ligado (o build da metade esquerda).
 2. `fix/physical-layout-lookup` (`2c1ecbe`): `kp_rgb_matrix_layout_init()` usava o primeiro layout físico da lista (o do Corne de 5 colunas, com 36 teclas) em vez do layout indicado em `physical-layout` (6 colunas, 42 teclas). Com isso, as teclas de polegar (posições 36 a 41) eram ignoradas pelos efeitos que dependem de posição e as outras teclas recebiam coordenadas erradas.
-3. Mapas de cor editáveis (`6ebecb4`, só na `corne-fixes`; não foi proposto ao upstream): slots de cor iguais nas duas metades, mapas que podem ser editados e salvos na memória da central, sincronização da metade direita e as requisições do ZMK Studio. Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
+3. Mapas de cor editáveis (`6ebecb4`, mais `cfc69e4`, que faz a compilação falhar se o buffer de recepção do ZMK Studio for menor que 256 bytes; só na `corne-fixes`, não foi proposto ao upstream): slots de cor iguais nas duas metades, mapas que podem ser editados e salvos na memória da central, sincronização da metade direita e as requisições do ZMK Studio. O commit seguinte (`c4bf112`) só acrescenta a documentação (`README.md` e `README.pt-BR.md`). Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
 
 A branch `corne-fixes` reúne as duas correções e o recurso novo. O módulo ainda ignora a rotação das teclas de polegar (diferença pequena nas coordenadas).
 
 **zmk-nice-oled** (fork `lenerdz/zmk-nice-oled`, branch `zmk-main`): a `main` do upstream (`mctechnology17/zmk-nice-oled`) mira o ZMK 0.3 e o LVGL 8. O [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37), de tokyo2006, migra o módulo para o ZMK `main` (Zephyr 4.1 e LVGL 9). A branch `zmk-main` do fork é esse PR mais uma correção: no ZMK `main`, a função que escolhe a saída devolve `ZMK_TRANSPORT_NONE` enquanto o USB não está pronto e o perfil Bluetooth ativo não está conectado, e o widget deixava o ícone de saída em branco nesse estado. Agora ele desenha o ícone de perfil sem pareamento ou sem sinal.
 
-**zmk-studio-messages** (fork `lenerdz/zmk-studio-messages`, branch `main`): o ZMK traz o protocolo do ZMK Studio como o módulo `zmk-studio-messages`, importado de `app/west.yml`, e o `config/west.yml` o substitui, com o mesmo nome e caminho, pelo fork. O fork parte do commit `6cb4c28`, o mesmo que o ZMK fixa, e acrescenta ao subsistema `keymap` as requisições e a notificação dos mapas de cor, com identificadores a partir de 100 para não colidir com os do upstream. O ZMK compila o protocolo junto com o firmware, então o módulo zmk-rgb-matrix usa as mensagens novas direto; o app web precisa de um cliente gerado a partir do mesmo protocolo para usá-las. Veja o [README](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md) do fork.
+**zmk-studio-messages** (fork `lenerdz/zmk-studio-messages`, branch `main`): o ZMK traz o protocolo do ZMK Studio como o módulo `zmk-studio-messages`, importado de `app/west.yml`, e o `config/west.yml` o substitui, com o mesmo nome e caminho, pelo fork. O fork parte do commit `6cb4c28`, o mesmo que o ZMK fixa, e acrescenta ao subsistema `keymap` as requisições e a notificação dos mapas de cor, com identificadores a partir de 100 para não colidir com os do upstream. O ZMK compila o protocolo junto com o firmware, então o módulo zmk-rgb-matrix usa as mensagens novas direto; o fork do app web traz um cliente TypeScript gerado a partir do mesmo protocolo (`src/vendor/zmk-studio-ts-client`) e é por ele que usa as mensagens novas. Veja o [README](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md) do fork.
 
-**zmk-studio** (fork `lenerdz/zmk-studio`, branch `main`): é o app web do ZMK Studio, e não faz parte do firmware nem do `west.yml`. O fork parte de `zmkfirmware/zmk-studio` no commit `1bb6bb8` e muda só o desenho das teclas (ícones e rótulos para Bluetooth, luzes, camadas e teclas de mídia), os avisos de "fork não oficial" e a hospedagem no GitHub Pages (workflow `pages.yml`), em <https://lenerdz.github.io/zmk-studio/>. A ponta da `main` do fork é `e6a5f57`. Os workflows `release-please` e `tauri-build` do upstream estão desativados nas configurações do fork. Veja o [README](https://github.com/lenerdz/zmk-studio/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md) do fork.
+**zmk-studio** (fork `lenerdz/zmk-studio`, branch `main`): é o app web do ZMK Studio, e não faz parte do firmware nem do `west.yml`. O fork parte de `zmkfirmware/zmk-studio` no commit `1bb6bb8` e acrescenta: o desenho das teclas (ícones e rótulos para Bluetooth, luzes, camadas e teclas de mídia); a aba **Lights**, que edita as cores dos mapas de cor (veja [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)), com um cliente TypeScript do protocolo estendido copiado para dentro do repositório (`src/vendor/zmk-studio-ts-client`, gerado a partir do `lenerdz/zmk-studio-messages` na revisão `cfcce43`), um teclado de demonstração e testes automáticos (`npm test`); os avisos de "fork não oficial"; e a hospedagem no GitHub Pages (workflow `pages.yml`, que roda os testes antes de publicar), em <https://lenerdz.github.io/zmk-studio/>. A ponta da `main` do fork é `d914e25`. Os workflows `release-please` e `tauri-build` do upstream estão desativados nas configurações do fork. Veja o [README](https://github.com/lenerdz/zmk-studio/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md) do fork.
 
 ### Atualizar uma versão ou voltar ao upstream
 
@@ -1010,6 +1039,11 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | O build falha com `slot-colors has more entries than the matrix has slots` | O nó `keypaw,rgb-matrix` do `.overlay` da metade não tem `slot-count` (ou ele é menor que a lista). Os dois `.overlay` precisam de `slot-count = <54>;` |
 | O build falha com `zmk_keymap_Request_get_led_info_tag` (ou outro nome `zmk_keymap_..._led_...`) não declarado | O módulo usa as requisições do fork do protocolo: o `config/west.yml` precisa substituir o `zmk-studio-messages` do ZMK pelo fork `lenerdz/zmk-studio-messages` (veja [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas)) |
 | Aviso `no-key-slots lists N slots for M LEDs that are not under a key` no log do teclado | O `no-key-slots` do `.overlay` precisa de um slot para cada LED sem tecla (cada entrada `KP_RGB_NO_KEY` do `mapping`). Confira o `.overlay` da metade |
+| A aba Lights não aparece no app | Ela só aparece depois de desbloquear o teclado (`&studio_unlock`) e com um firmware que tem os mapas editáveis, e só no [fork do app](https://lenerdz.github.io/zmk-studio/): o app oficial não tem a aba. Com outro firmware (sem o fork do protocolo ou sem o módulo zmk-rgb-matrix do fork) o teclado responde "RPC not found" à primeira requisição e o app não oferece a aba. Confira o `config/west.yml` e grave a metade esquerda. **Não testado neste teclado** |
+| Pintei LEDs na aba Lights e o teclado não mudou, ou o app avisou que as cores não puderam ser definidas | Confira se a metade esquerda foi compilada com `CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256` (`config/corne_left.conf`): com o padrão do ZMK (30 bytes) os pedidos de edição chegam cortados e o log do teclado mostra `Dropping incoming RPC byte, insufficient room in the RX buffer`. **Não testado neste teclado**: baseado no código do ZMK |
+| O build da metade esquerda falha com `ZMK Studio would drop the bytes of a set_led_colors request` | O `config/corne_left.conf` foi apagado ou não está sendo aplicado: ele precisa ter `CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256` (ou mais). O módulo zmk-rgb-matrix confere esse valor de propósito |
+| As cores que pintei na aba Lights sumiram depois de reiniciar o teclado | A edição vale só até desligar, a não ser que você clique em **Save** (canto superior direito do app). Elas também são apagadas por "Restore Stock Settings", por `RGB_RESET` e pelo `settings_reset` |
+| Pinto na aba Lights e só a metade esquerda muda | A metade direita recebe as edições da esquerda por Bluetooth, um slot a cada 50 ms, e só depois de conectar. Confira se as duas metades estão ligadas, conectadas e com o firmware da mesma compilação. **Não testado neste teclado** |
 | Avisos do Kconfig sobre widgets de WPM no build da metade direita | Esperados: esses widgets só existem na metade central |
 
 ## Manter este README atualizado
@@ -1023,18 +1057,18 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 | `config/corne_left.overlay` ou `config/corne_right.overlay` | [Mapa dos LEDs](#mapa-dos-leds), [Slots de cor](#slots-de-cor) e, se o `mapping`, o `slot-count` ou o `no-key-slots` mudarem, a macro `LED_SLOT_ORDER` em `config/led_colors.dtsi` |
 | `config/led_colors.dtsi` (cores, paleta, ordem dos slots) | [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock), [Slots de cor](#slots-de-cor) e as receitas do [Guia de configuração](#guia-de-configuração) que mostram trechos do arquivo |
 | Fork do protocolo (`lenerdz/zmk-studio-messages`), `src/studio_rpc.c`, `src/rgb_maps.c` ou `src/rgb_split_sync.c` do zmk-rgb-matrix | [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) (requisições, IDs e limites) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
-| `config/corne.conf` | [Telas OLED](#telas-oled), [Funções e recursos](#funções-e-recursos) e [O que é salvo na memória](#o-que-é-salvo-na-memória) |
+| `config/corne.conf` ou `config/corne_left.conf` | [Telas OLED](#telas-oled), [Funções e recursos](#funções-e-recursos), [ZMK Studio](#zmk-studio) (buffer de recepção) e [O que é salvo na memória](#o-que-é-salvo-na-memória) |
 | `config/west.yml` ou `.github/workflows/build.yml` | [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | `build.yaml` | [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) |
 | Arquivo criado, movido ou removido | [Estrutura do repositório](#estrutura-do-repositório) |
-| Fork do app ZMK Studio (`lenerdz/zmk-studio`): ícones, hospedagem ou commit | [ZMK Studio](#zmk-studio) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
+| Fork do app ZMK Studio (`lenerdz/zmk-studio`): ícones, aba Lights, hospedagem ou commit | [ZMK Studio](#zmk-studio), [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | Problema encontrado ou resolvido | [Solução de problemas](#solução-de-problemas) |
 
 ## Referências
 
 - ZMK: [documentação](https://zmk.dev/docs), [ZMK Studio](https://zmk.dev/docs/features/studio) e [Caps Word](https://zmk.dev/docs/keymaps/behaviors/caps-word).
-- zmk-rgb-matrix: [upstream](https://github.com/gudzpoz/zmk-rgb-matrix) e [documentação](https://gudzpoz.github.io/zmk-rgb-matrix/); [fork](https://github.com/lenerdz/zmk-rgb-matrix) e seu [README em português](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md).
+- zmk-rgb-matrix: [upstream](https://github.com/gudzpoz/zmk-rgb-matrix) e [documentação](https://gudzpoz.github.io/zmk-rgb-matrix/); [fork](https://github.com/lenerdz/zmk-rgb-matrix) e seu [README em português](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md), com a seção [Slots de cor e mapas de cores editáveis](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md#slots-de-cor-e-mapas-de-cores-editáveis).
 - zmk-nice-oled: [upstream](https://github.com/mctechnology17/zmk-nice-oled), [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37); [fork](https://github.com/lenerdz/zmk-nice-oled) e seu [README em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md).
 - zmk-studio-messages: [upstream](https://github.com/zmkfirmware/zmk-studio-messages); [fork](https://github.com/lenerdz/zmk-studio-messages) e seu [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md).
-- zmk-studio: [upstream](https://github.com/zmkfirmware/zmk-studio); [fork](https://github.com/lenerdz/zmk-studio), seu [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md) e o [app publicado](https://lenerdz.github.io/zmk-studio/).
+- zmk-studio: [upstream](https://github.com/zmkfirmware/zmk-studio); [fork](https://github.com/lenerdz/zmk-studio), seu [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md), a [documentação da aba Lights](https://github.com/lenerdz/zmk-studio/blob/main/src/lights/README.md) (em inglês) e o [app publicado](https://lenerdz.github.io/zmk-studio/).
 - Este repositório: [lenerdz/corne-zmk](https://github.com/lenerdz/corne-zmk).

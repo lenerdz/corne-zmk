@@ -19,13 +19,15 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit 6ebecb4) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit c4bf112) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
       # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
-      # (slots de cor, registros na flash, sync da metade direita e requisicoes do ZMK Studio).
+      # (slots de cor, registros na flash, sync da metade direita e requisicoes do ZMK Studio;
+      # o build da esquerda exige CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256, que esta em
+      # config/corne_left.conf).
       # Voltar para o upstream (remote gudzpoz) so se ele incorporar os tres.
-      revision: 6ebecb4bdd21bc6ca2969a1bac4879b166858d8c
+      revision: c4bf112fe47bc5c93da310acfd6c2c92dbbe6874
     - name: zmk-nice-oled
       remote: lenerdz
       # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 479a516) =

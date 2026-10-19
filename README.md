@@ -20,19 +20,20 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
   - [Como as luzes funcionam](#como-as-luzes-funcionam)
   - [Controles no dia a dia](#controles-no-dia-a-dia)
   - [Efeitos instalados](#efeitos-instalados)
-  - [Indicadores de camada e de Caps Lock](#indicadores-de-camada-e-de-caps-lock)
+  - [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock)
   - [O que é salvo na memória](#o-que-é-salvo-na-memória)
   - [Guia de configuração](#guia-de-configuração)
     - [Aplicar uma mudança no teclado](#aplicar-uma-mudança-no-teclado)
     - [Mudar a cor ou a velocidade de um efeito](#mudar-a-cor-ou-a-velocidade-de-um-efeito)
     - [Mudar o brilho e o efeito inicial](#mudar-o-brilho-e-o-efeito-inicial)
     - [Manter as luzes acesas quando o teclado fica ocioso](#manter-as-luzes-acesas-quando-o-teclado-fica-ocioso)
-    - [Mudar as cores dos indicadores de camada](#mudar-as-cores-dos-indicadores-de-camada)
-    - [Mudar quais LEDs mostram um indicador](#mudar-quais-leds-mostram-um-indicador)
+    - [Mudar a cor de uma tecla ou de um LED em uma camada](#mudar-a-cor-de-uma-tecla-ou-de-um-led-em-uma-camada)
+    - [Deixar o efeito aparecer por baixo do mapa de uma camada](#deixar-o-efeito-aparecer-por-baixo-do-mapa-de-uma-camada)
+    - [Mudar quais LEDs um overlay pinta](#mudar-quais-leds-um-overlay-pinta)
     - [Adicionar um efeito novo](#adicionar-um-efeito-novo)
-    - [Adicionar o indicador de uma camada nova](#adicionar-o-indicador-de-uma-camada-nova)
+    - [Adicionar o mapa de cores de uma camada nova](#adicionar-o-mapa-de-cores-de-uma-camada-nova)
     - [Dar um efeito próprio ao underglow](#dar-um-efeito-próprio-ao-underglow)
-    - [Escolher quais indicadores aparecem em cada efeito](#escolher-quais-indicadores-aparecem-em-cada-efeito)
+    - [Escolher quais overlays aparecem em cada efeito](#escolher-quais-overlays-aparecem-em-cada-efeito)
     - [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas)
     - [Trocar o mapa dos LEDs](#trocar-o-mapa-dos-leds)
   - [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays)
@@ -68,7 +69,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 ### Recursos
 
 - **6 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS e MEDIA. Veja [Camadas](#camadas).
-- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 8 efeitos, troca direta de efeito por teclas na camada SYS, indicador de camada no underglow e indicador de Caps Lock. Veja [Luzes](#luzes-rgb-por-tecla-e-underglow).
+- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada) e indicador de Caps Lock. Veja [Luzes](#luzes-rgb-por-tecla-e-underglow).
 - **Telas OLED verticais** (nice!oled): saída (USB ou Bluetooth), bateria, perfil Bluetooth, velocidade de digitação e camada ativa. A tela nunca apaga. Veja [Telas OLED](#telas-oled).
 - **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes e camadas. Veja [ZMK Studio](#zmk-studio).
 - **Bluetooth com 5 perfis**, **NKRO** e **Caps Word**. Veja [Funções e recursos](#funções-e-recursos).
@@ -84,15 +85,17 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 ├── config/
 │   ├── corne.keymap              teclas, camadas e toda a configuração das luzes (efeitos, condições, overlays)
 │   ├── corne.conf                opções Kconfig: telas, Bluetooth, NKRO, energia, luzes
-│   ├── corne_left.overlay        mapa dos LEDs da metade esquerda
-│   ├── corne_right.overlay       mapa dos LEDs da metade direita
+│   ├── corne_left.overlay        mapa dos LEDs da metade esquerda (e a macro CORNE_HALF_LEFT)
+│   ├── corne_right.overlay       mapa dos LEDs da metade direita (e a macro CORNE_HALF_RIGHT)
+│   ├── led_colors.dtsi           cores de cada LED em cada camada (incluído no fim do corne.keymap)
 │   ├── rgb.dtsi                  legado, sem uso (veja a nota abaixo)
 │   └── west.yml                  versões do ZMK e dos módulos
 ├── SUGESTOES.md                  ideias de melhoria do layout
 └── README.md                     este arquivo
 ```
 
-- Os shields `corne_left` e `corne_right` vêm do próprio ZMK. Este repositório só acrescenta o keymap, as opções, os mapas de LED e a lista de módulos.
+- Os shields `corne_left` e `corne_right` vêm do próprio ZMK. Este repositório só acrescenta o keymap, as opções, os mapas de LED, as cores de cada LED em cada camada e a lista de módulos.
+- `config/led_colors.dtsi` é o arquivo a editar para mudar as cores de cada LED em cada camada. O `config/corne.keymap` o inclui no final, e ele escolhe os valores da metade que está sendo compilada. Veja [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
 - `config/rgb.dtsi` é resto da configuração antiga de underglow (macros de cor e anotações do mapa de LEDs da época). Nenhum arquivo o inclui, então ele não afeta o firmware. O mapa de LEDs vigente está nos arquivos `.overlay` e na seção [Mapa dos LEDs](#mapa-dos-leds).
 - [`SUGESTOES.md`](SUGESTOES.md) reúne ideias de melhoria do layout (acesso a NAV, home row mods, combos etc.).
 
@@ -112,9 +115,9 @@ Esquerda                      Direita
 
 ### Camadas
 
-| Índice | Camada | Para que serve | Como ativar | Cor no underglow |
+| Índice | Camada | Para que serve | Como ativar | Cor da camada (underglow e tecla que a ativa) |
 |---|---|---|---|---|
-| 0 | QWERTY | digitação (base) | camada padrão | mostra o efeito ativo |
+| 0 | QWERTY | digitação (base) | camada padrão | mostra o efeito ativo (azul só com o efeito `static`) |
 | 1 | FN1 | números e teclas F | segurar o polegar do meio da esquerda (posição 37) | laranja |
 | 2 | RAISE | símbolos | segurar o polegar do meio da direita (posição 40) | azul-claro |
 | 3 | NAV | setas, Home/End, PgUp/PgDn, Insert, Delete | segurar FN1 e, sem soltar, segurar a tecla da posição 24 (canto inferior esquerdo) | verde |
@@ -123,13 +126,15 @@ Esquerda                      Direita
 
 As camadas 3, 4 e 5 só são alcançadas por FN1: a camada FN1 tem `&mo 3`, `&mo 4` e `&mo 5` nas posições 24, 25 e 26.
 
+A cor da camada é a do underglow enquanto ela está ativa e a da tecla que a ativa. As cores de todas as teclas de cada camada estão em [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
+
 Nas grades abaixo, cada camada aparece em duas partes (esquerda e direita), na mesma ordem das linhas do arquivo `config/corne.keymap`. As linhas são: 3 linhas de 6 teclas e, por último, os 3 polegares. Legenda:
 
 - `--` é uma tecla transparente: vale a tecla da camada de baixo.
 - Os rótulos seguem os nomes de tecla do ZMK (`LGUI`, `PG_DN`, `C_VOL_DN`...). Pontuação aparece como o próprio caractere (`;`, `[`, `{`...).
 - `FN1`, `RAISE`, `NAV`, `SYS` e `MEDIA` são `&mo <camada>` (a camada fica ativa enquanto a tecla é segurada).
 - `STUDIO` é `&studio_unlock`, `BT n` é `&bt BT_SEL n` e `CAPS_WORD` é `&caps_word`.
-- Na camada SYS, os nomes em minúsculas (`solid` a `starlight`) são os efeitos diretos `&fx_<nome>` e os `RGB_*` são `&kprgb RGB_*`.
+- Na camada SYS, os nomes em minúsculas (`solid` a `static`) são os efeitos diretos `&fx_<nome>` e os `RGB_*` são `&kprgb RGB_*`.
 
 #### Camada 0: QWERTY
 
@@ -209,7 +214,7 @@ STUDIO    --        --        --        --        --
 Direita
 solid     breathe   spectrum  rainbow   reactive  ripple
 RGB_EFR   RGB_SAI   RGB_SAD   RGB_SPI   RGB_SPD   RGB_RESET
-heatmap   starlight --        --        --        --
+heatmap   starlight static    --        --        --
 ENTER     --        RALT
 ```
 
@@ -249,7 +254,7 @@ O ZMK Studio permite editar teclas pelo navegador, sem recompilar. Ele está hab
 
 > **Atenção:** depois que você usar o ZMK Studio para gerenciar as teclas, mudanças futuras no arquivo `.keymap` não são aplicadas até você executar a ação "Restore Stock Settings" na interface do Studio (ou gravar o `settings_reset` nas duas metades). É o comportamento documentado pelo ZMK. Em geral, escolha um dos dois caminhos para as teclas: o Studio ou o `.keymap`.
 >
-> Isso vale para as teclas e camadas. Os efeitos, as condições e os overlays de luz, o `corne.conf` e os `.overlay` são compilados no firmware e continuam valendo normalmente a cada gravação. A consequência prática: se você já usa o Studio, um efeito novo adicionado ao `.keymap` precisa ser atribuído a uma tecla pelo próprio Studio.
+> Isso vale para as teclas e camadas. Os efeitos, as condições e os overlays de luz, as cores de `config/led_colors.dtsi`, o `corne.conf` e os `.overlay` são compilados no firmware e continuam valendo normalmente a cada gravação. A consequência prática: se você já usa o Studio, um efeito novo adicionado ao `.keymap` precisa ser atribuído a uma tecla pelo próprio Studio (é o caso do `&fx_static`, camada SYS, posição 32). As cores de cada camada seguem o número da camada e a posição física da tecla, não o que o Studio colocou nela.
 
 #### Ícones nas teclas (fork do app)
 
@@ -267,7 +272,7 @@ O app oficial desenha cada tecla como o nome do comportamento e, embaixo, o prim
 
 O fork não altera o protocolo nem o que é gravado no teclado: a edição, o salvamento e o "Restore Stock Settings" seguem o mesmo caminho do app oficial. Ele só muda o desenho das teclas e a hospedagem do app. Veja [Por que existem os forks](#por-que-existem-os-forks).
 
-**Não testado neste teclado.** Foi verificado nas stories do Storybook do fork, com as seis camadas deste `corne.keymap`; os nomes dos comportamentos usados nelas vêm do código-fonte do ZMK e do zmk-rgb-matrix. O app só mostra o que o firmware informa: se uma tecla aparecer vazia ou com um rótulo estranho, passe o mouse sobre ela para ver o nome do comportamento.
+**Testado neste teclado.** O fork foi usado com este teclado conectado por USB e os ícones e rótulos funcionaram (relato do dono do teclado). Também foi verificado nas stories do Storybook do fork, com as seis camadas deste `corne.keymap`; os nomes dos comportamentos usados nelas vêm do código-fonte do ZMK e do zmk-rgb-matrix. O app só mostra o que o firmware informa: se uma tecla aparecer vazia ou com um rótulo estranho, passe o mouse sobre ela para ver o nome do comportamento.
 
 ## Luzes (RGB por tecla e underglow)
 
@@ -277,11 +282,11 @@ As luzes são controladas pelo módulo [zmk-rgb-matrix](https://github.com/gudzp
 
 1. **Fita de LEDs**: cada metade tem 27 LEDs WS2812 em série (`&led_strip { chain-length = <27>; }` em `config/corne.keymap`). Os índices 0 a 5 são o underglow (sem tecla) e 6 a 26 são um LED sob cada tecla.
 2. **Mapa dos LEDs**: o nó `keypaw,rgb-matrix` de cada metade (em `config/corne_left.overlay` e `config/corne_right.overlay`) diz onde cada LED fica: pela posição da tecla ou, no underglow, por coordenadas. Os efeitos que dependem de posição (reativo, ondas, mapa de calor) usam essas coordenadas.
-3. **Efeitos**: são os nós filhos do comportamento `kprgb` no keymap. Um efeito principal de cada vez pinta todos os LEDs, e as teclas da camada SYS trocam o efeito.
-4. **Overlays**: pintam por cima do efeito principal, só em alguns LEDs e só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado). Aqui há um indicador de camada no underglow e um indicador de Caps Lock.
-5. **As duas metades precisam ter exatamente os mesmos efeitos, condições e overlays, na mesma ordem**, porque o módulo os identifica pela posição em que foram declarados. Por isso esses blocos ficam no `config/corne.keymap`, que é compartilhado, e não nos `.overlay` de cada metade. Sempre grave as duas metades depois de mexer neles.
+3. **Efeitos**: são os nós filhos do comportamento `kprgb` no keymap. Um efeito principal de cada vez pinta todos os LEDs, e as teclas da camada SYS trocam o efeito. O efeito `fx_static` é o mapa de cores da camada base.
+4. **Overlays**: pintam por cima do efeito principal, só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado). Aqui há um **mapa de cores por camada** (FN1 a MEDIA), que cobre todos os LEDs da metade, e um indicador de Caps Lock, que pinta só três.
+5. **As duas metades precisam ter exatamente os mesmos efeitos, condições e overlays, na mesma ordem**, porque o módulo os identifica pela posição em que foram declarados. Por isso esses blocos ficam no `config/corne.keymap`, que é compartilhado, e não nos `.overlay` de cada metade. Só os valores de `led-colors` (as cores) diferem entre as metades: eles vêm de `config/led_colors.dtsi`, que escolhe as cores da metade que está sendo compilada. Sempre grave as duas metades depois de mexer em qualquer um desses arquivos.
 
-O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_caps`. Quem é declarado depois fica por cima.
+O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_caps`. Quem é declarado depois fica por cima. Um mapa de camada cobre todos os LEDs: enquanto um deles está ativo, o efeito principal e os mapas declarados antes dele nem são desenhados (o efeito principal fica pausado e volta quando a camada é solta).
 
 ### Controles no dia a dia
 
@@ -312,10 +317,11 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 24 | LCTRL | `&studio_unlock` | libera a edição no ZMK Studio |
 | 30 | N | `&fx_heatmap` | escolhe o efeito `heatmap` |
 | 31 | M | `&fx_starlight` | escolhe o efeito `starlight` |
+| 32 | , | `&fx_static` | escolhe o efeito `static`: o mapa de cores da camada base |
 
 ### Efeitos instalados
 
-São 8 efeitos, declarados dentro de `kprgb` em `config/corne.keymap`. A ordem da tabela é a ordem de `RGB_EFF` e `RGB_EFR` e o índice usado em `initial-effect` (0 é o primeiro).
+São 9 efeitos, declarados dentro de `kprgb` em `config/corne.keymap`. A ordem da tabela é a ordem de `RGB_EFF` e `RGB_EFR` e o índice usado em `initial-effect` (0 é o primeiro).
 
 | Índice | Nome (`&fx_...`) | Tipo | Resultado | Propriedades no keymap | Atalho na SYS (posição) |
 |---|---|---|---|---|---|
@@ -327,25 +333,58 @@ São 8 efeitos, declarados dentro de `kprgb` em `config/corne.keymap`. A ordem d
 | 5 | `fx_ripple` | `ripple` | ondas que se expandem a partir da tecla pressionada | `color = 0x00FFFF` | 11 |
 | 6 | `fx_heatmap` | `heatmap` | mapa de calor: as teclas mais usadas esquentam e esfriam com o tempo | padrões do módulo | 30 |
 | 7 | `fx_starlight` | `starlight` | brilhos aleatórios suaves | `color = 0xFFFFFF`, `smooth` | 31 |
+| 8 | `fx_static` | `static` | cada LED com a cor do mapa da camada base | `led-colors` em `config/led_colors.dtsi` (bloco `&fx_static`) | 32 |
 
-O tipo de cada efeito é o `compatible` `keypaw,rgb-matrix-<tipo>`. Os efeitos que dependem de tecla pressionada (`reactive`, `ripple`, `heatmap`) reagem às teclas das duas metades. As cores são `0xRRGGBB`: por exemplo vermelho `0xFF0000`, laranja `0xFF8000`, amarelo `0xFFFF00`, verde `0x00FF00`, ciano `0x00FFFF`, azul-claro `0x0080FF`, azul `0x0000FF`, magenta `0xFF00FF` e branco `0xFFFFFF`.
+O tipo de cada efeito é o `compatible` `keypaw,rgb-matrix-<tipo>`. Os efeitos que dependem de tecla pressionada (`reactive`, `ripple`, `heatmap`) reagem às teclas das duas metades. O `fx_static` não anima: cada LED mostra a cor do bloco `&fx_static` de `config/led_colors.dtsi`. As cores são `0xRRGGBB`: por exemplo vermelho `0xFF0000`, laranja `0xFF8000`, amarelo `0xFFFF00`, verde `0x00FF00`, ciano `0x00FFFF`, azul-claro `0x0080FF`, azul `0x0000FF`, magenta `0xFF00FF` e branco `0xFFFFFF`.
 
-### Indicadores de camada e de Caps Lock
+### Cores por camada e indicador de Caps Lock
 
-São overlays declarados em `rgb_overlays` no `config/corne.keymap`. O indicador de camada pinta o underglow das duas metades (LEDs 0 a 5 de cada uma). O de Caps Lock pinta a coluna externa da metade esquerda.
+Cada camada tem o seu mapa de cores: uma cor para cada um dos 27 LEDs de cada metade (21 sob as teclas e 6 de underglow). As cores ficam em [`config/led_colors.dtsi`](config/led_colors.dtsi), que o `config/corne.keymap` inclui no final, e são definidas na compilação: nem as teclas de luz nem o ZMK Studio mudam essas cores. O arquivo tem a paleta, as macros que põem as cores na ordem da fita e um bloco por camada.
 
-| Overlay | Condição | LEDs | Cor |
+**Não testado neste teclado.** Foi verificado só no computador: o pré-processador C expande o `led_colors.dtsi` em 27 valores por metade, na ordem da fita, e essa ordem confere com o `mapping` de `corne_left.overlay` e `corne_right.overlay` (conferência por script). O comportamento no módulo vem da leitura do código do zmk-rgb-matrix. O resultado nas teclas ainda não foi visto no teclado.
+
+A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando você escolhe esse efeito (camada SYS, posição 32); com os outros efeitos a camada 0 mostra o efeito. As camadas 1 a 5 usam overlays, que aparecem com qualquer efeito. Os overlays são declarados em `rgb_overlays` no `config/corne.keymap`:
+
+| Overlay | Condição | LEDs | Cores |
 |---|---|---|---|
-| `ov_fn1` | camada 1 (FN1) ativa | `leds = <0 1 2 3 4 5>` | `0xFF8000` (laranja) |
-| `ov_raise` | camada 2 (RAISE) ativa | `leds = <0 1 2 3 4 5>` | `0x0080FF` (azul-claro) |
-| `ov_nav` | camada 3 (NAV) ativa | `leds = <0 1 2 3 4 5>` | `0x00FF00` (verde) |
-| `ov_sys` | camada 4 (SYS) ativa | `leds = <0 1 2 3 4 5>` | `0xFF00FF` (magenta) |
-| `ov_media` | camada 5 (MEDIA) ativa | `leds = <0 1 2 3 4 5>` | `0x00FFFF` (ciano) |
+| `ov_fn1` | camada 1 (FN1) ativa | `all-leds` | bloco `&map_fn1` |
+| `ov_raise` | camada 2 (RAISE) ativa | `all-leds` | bloco `&map_raise` |
+| `ov_nav` | camada 3 (NAV) ativa | `all-leds` | bloco `&map_nav` |
+| `ov_sys` | camada 4 (SYS) ativa | `all-leds` | bloco `&map_sys` |
+| `ov_media` | camada 5 (MEDIA) ativa | `all-leds` | bloco `&map_media` |
 | `ov_caps` | Caps Lock do computador ligado | `keys = <0 12 24>` | `0xFFFFFF` (branco) |
 
-- Como NAV, SYS e MEDIA são alcançadas segurando FN1, duas camadas ficam ativas ao mesmo tempo. Vale a cor da camada declarada depois: FN1 + NAV mostra verde, FN1 + SYS mostra magenta e FN1 + MEDIA mostra ciano.
-- `keys = <0 12 24>` são as posições TAB, LSHIFT e LCTRL (coluna externa da metade esquerda).
+Cada mapa de camada é um overlay com `all-leds` e um efeito `static` filho; o `led-colors` desse filho é preenchido pelo bloco de mesmo nome em `config/led_colors.dtsi`.
+
+- **Prioridade entre camadas.** Como NAV, SYS e MEDIA são alcançadas segurando FN1, duas camadas ficam ativas ao mesmo tempo, e vale o mapa da camada declarada depois: FN1 + NAV mostra o mapa de NAV, FN1 + SYS mostra o de SYS e FN1 + MEDIA mostra o de MEDIA.
+- **O efeito principal fica pausado.** Cada mapa cobre todos os LEDs da metade. Enquanto uma camada de FN1 a MEDIA está ativa, o efeito principal nem é desenhado: os efeitos que reagem às teclas (`reactive`, `ripple`, `heatmap`) não aparecem nem contam teclas nessas camadas, e voltam quando a camada é solta. Para ver o efeito por baixo do mapa, veja [Deixar o efeito aparecer por baixo do mapa de uma camada](#deixar-o-efeito-aparecer-por-baixo-do-mapa-de-uma-camada).
+- **Brilho.** As cores são `0xRRGGBB` com brilho cheio. O brilho real vem do `kprgb` e vale para todas as cores, mapas inclusive: `RGB_BRI` e `RGB_BRD` clareiam e escurecem os mapas, e `max-brightness` é o teto. Matiz, saturação e velocidade não alteram os mapas.
+- **As cores seguem a posição, não a tecla.** O mapa guarda uma cor por posição física (0 a 41, veja [Posições das teclas](#posições-das-teclas)) e o número da camada. Se você trocar uma tecla pelo ZMK Studio ou mudar a ordem das camadas, as cores não acompanham: edite o `led_colors.dtsi`.
+- **Cada metade usa o seu grupo.** Cada bloco tem um grupo de 27 valores para a metade esquerda e outro para a direita. O firmware de cada metade usa o seu: as macros `CORNE_HALF_LEFT` e `CORNE_HALF_RIGHT`, definidas em `corne_left.overlay` e `corne_right.overlay`, dizem qual é.
 - O número da camada em cada condição (`cond_fn1` a `cond_media`) é a ordem em que as camadas aparecem no keymap, começando em 0.
+
+**Cores padrão.** Cada tecla de camada acende na cor da camada que ela abre (a tecla que você segura continua acesa), e o underglow usa a cor da camada. As demais teclas seguem a função:
+
+| Nome | Cor | Valor | Usada por padrão em |
+|---|---|---|---|
+| `OFF` | apagado | `0x000000` | teclas transparentes (`&trans`) e teclas sem função na camada |
+| `WHT` | branco | `0xFFFFFF` | letras, SPACE, `CAPS`, `CAPS_WORD`, `C_MUTE` e `RGB_TOG` |
+| `RED` | vermelho | `0xFF0000` | BSPC, DEL, ESC, `C_PWR`, `BT_CLR` e `RGB_RESET` |
+| `ORG` | laranja | `0xFF8000` | teclas F, INS, `C_SLEEP`, `C_STOP`, `RGB_HUI` e `RGB_HUD`; camada FN1 |
+| `YEL` | amarelo | `0xFFFF00` | números, `C_BRI_DN`, `C_BRI_UP`, `RGB_BRI` e `RGB_BRD` |
+| `LIM` | verde-limão | `0x80FF00` | pontuação e símbolos, HOME, END, PG_UP, PG_DN, PSCRN, SLCK, `RGB_SAI` e `RGB_SAD` |
+| `GRN` | verde | `0x00FF00` | setas, `C_PREV` e `C_NEXT`; camada NAV |
+| `TEA` | verde-água | `0x00FF80` | ENTER e `C_PP` |
+| `CYN` | ciano | `0x00FFFF` | `C_VOL_DN`, `C_VOL_UP`, `RGB_SPI` e `RGB_SPD`; camada MEDIA |
+| `SKY` | azul-claro | `0x0080FF` | colchetes, chaves e parênteses; camada RAISE |
+| `BLU` | azul | `0x0000FF` | perfis Bluetooth (`BT_SEL`); underglow da camada base |
+| `PUR` | roxo | `0x8000FF` | TAB, Shift, Ctrl, GUI e Alt |
+| `MAG` | magenta | `0xFF00FF` | `&studio_unlock`; camada SYS |
+| `PNK` | rosa | `0xFF0080` | escolha de efeito (`&fx_*`, `RGB_EFF` e `RGB_EFR`) |
+
+Os nomes são macros definidas no começo do `led_colors.dtsi` (veja a receita [Mudar a cor de uma tecla ou de um LED em uma camada](#mudar-a-cor-de-uma-tecla-ou-de-um-led-em-uma-camada)).
+
+**Indicador de Caps Lock.** O overlay `ov_caps` pinta a coluna externa da metade esquerda (`keys = <0 12 24>`: TAB, LSHIFT e LCTRL) de branco enquanto o computador informa Caps Lock ligado (condição `cond_caps`). É o último overlay declarado, então aparece por cima de qualquer mapa de camada.
 
 ### O que é salvo na memória
 
@@ -355,6 +394,7 @@ O módulo guarda o estado das luzes na memória do teclado (`CONFIG_SETTINGS`), 
 |---|---|---|
 | ligado ou desligado, brilho e efeito selecionado | sim, sempre | gravados 60 s depois da última alteração (`CONFIG_ZMK_SETTINGS_SAVE_DEBOUNCE`, padrão do ZMK). Se desligar o teclado antes disso, a última alteração se perde |
 | matiz, saturação e velocidade ajustados com `RGB_HUI`, `RGB_HUD`, `RGB_SAI`, `RGB_SAD`, `RGB_SPI` e `RGB_SPD` | só nos efeitos que têm `persist-id` | **neste repositório nenhum efeito tem `persist-id`**, então esses ajustes voltam aos valores do keymap ao reiniciar. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
+| cores dos mapas por camada (`config/led_colors.dtsi`) | não, fazem parte do firmware | só mudam ao gravar um firmware novo na metade correspondente. Mudar só essas cores não exige `RGB_RESET` |
 
 O estado salvo tem prioridade sobre os valores iniciais do `kprgb`: depois que você muda o efeito, o brilho ou o liga/desliga pelas teclas, `initial-effect` e `initial-brightness` deixam de valer naquele teclado.
 
@@ -362,7 +402,7 @@ O estado salvo tem prioridade sobre os valores iniciais do `kprgb`: depois que v
 
 ### Guia de configuração
 
-Todas as receitas abaixo editam `config/corne.keymap` (ou `config/corne.conf` e os `.overlay`, quando indicado). Os valores de cada propriedade estão em [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays).
+Todas as receitas abaixo editam `config/corne.keymap` (ou `config/led_colors.dtsi`, `config/corne.conf` e os `.overlay`, quando indicado). Os valores de cada propriedade estão em [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays).
 
 > As receitas marcadas como "não testada neste teclado" foram escritas a partir da documentação do módulo (os arquivos `.yaml` de bindings do zmk-rgb-matrix). Se uma propriedade ou valor estiver errado, o build do GitHub Actions falha e mostra o erro no log.
 
@@ -430,41 +470,63 @@ Por padrão do módulo, as luzes **apagam** quando o ZMK considera o teclado oci
 
 Isso não afeta as telas OLED, que nunca apagam (`CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n`).
 
-#### Mudar as cores dos indicadores de camada
+#### Mudar a cor de uma tecla ou de um LED em uma camada
 
-Cada indicador é um overlay com um efeito `solid` filho; a cor está no `color` desse filho. Exemplo: trocar o verde da NAV por amarelo.
+As cores ficam em `config/led_colors.dtsi`, um bloco por camada: `&fx_static` (QWERTY), `&map_fn1`, `&map_raise`, `&map_nav`, `&map_sys` e `&map_media`. Cada bloco tem dois grupos de 27 valores, o da metade esquerda e o da direita, nesta ordem: três linhas de 6 teclas, os 3 polegares e os 6 LEDs de underglow. As posições são as de [Posições das teclas](#posições-das-teclas), e o comentário ao lado de cada linha diz que tecla era aquela no keymap. **Não testada neste teclado.**
+
+1. Abra `config/led_colors.dtsi` e ache o bloco da camada.
+2. Troque o nome da cor da posição que quiser. Exemplo: a tecla F12 da camada FN1 (terceira linha da metade esquerda, quarta tecla) de laranja (`ORG`) para vermelho (`RED`). No bloco `&map_fn1`, a linha passa a ser:
+
+   ```dts
+            GRN, MAG, CYN, RED, OFF, OFF, /* NAV SYS MEDIA F12 -- -- */
+   ```
+
+3. Para o underglow, troque os 6 últimos valores do grupo (a linha `/* underglow */`). A posição física de cada um está em [Mapa dos LEDs](#mapa-dos-leds).
+4. Para uma cor que não está na paleta, escreva o valor direto no lugar do nome (`0xFF4000`) ou crie um nome novo no começo do arquivo, junto das outras cores (`#define BRN 0x804000 /* marrom */`).
+5. Faça commit e push, baixe o firmware e grave a metade que você mudou (as duas, se mexeu nos dois grupos). Mudar só as cores não exige `RGB_RESET`: os mapas não são salvos na memória.
+
+Cuidados:
+
+- Cada grupo tem exatamente 27 valores, separados por vírgulas. Com outro número o build falha (veja [Solução de problemas](#solução-de-problemas)).
+- Dentro de `LED_MAP(...)` use só comentários `/* ... */`. Um comentário `//` apaga o resto da linha depois do pré-processador e as cores seguintes se perdem sem aviso.
+- O grupo da esquerda vale só para a metade esquerda, e o da direita só para a direita.
+
+#### Deixar o efeito aparecer por baixo do mapa de uma camada
+
+Por padrão o mapa de uma camada é opaco: cobre todos os LEDs e o efeito principal fica pausado. Com `opacity` abaixo de 100, o overlay deixa de cobrir tudo: o efeito continua rodando por baixo e o mapa é misturado a ele. **Não testada neste teclado.**
 
 ```dts
-ov_nav: ov_nav {
+ov_fn1: ov_fn1 {
     compatible = "keypaw,rgb-overlay";
-    condition = <&cond_nav>;
-    leds = <0 1 2 3 4 5>;
-    fx_ov_nav {
-        compatible = "keypaw,rgb-matrix-solid";
+    condition = <&cond_fn1>;
+    all-leds;
+    opacity = <70>;             // 70% do mapa e 30% do efeito
+    map_fn1: fx_ov_fn1 {
+        compatible = "keypaw,rgb-matrix-static";
         #binding-cells = <0>;
-        color = <0xFFFF00>;
     };
 };
 ```
 
-Os overlays têm um efeito privado: ele não é selecionável, não é salvo e não é afetado pelos comandos de matiz, brilho e velocidade do `kprgb`.
+- As teclas apagadas (`OFF`) mostram um pouco do efeito, e as demais cores ficam misturadas com a cor do efeito, na proporção de `opacity`.
+- Para um efeito aparecer sem nenhum mapa por cima, use `no-overlays` nele (veja [Escolher quais overlays aparecem em cada efeito](#escolher-quais-overlays-aparecem-em-cada-efeito)).
 
-#### Mudar quais LEDs mostram um indicador
+#### Mudar quais LEDs um overlay pinta
 
-Um overlay escolhe seus alvos com estas propriedades (que também valem para o indicador de Caps Lock):
+Um overlay escolhe seus alvos com estas propriedades (valem para os mapas de camada e para o indicador de Caps Lock):
 
 | Propriedade | Significado |
 |---|---|
 | `leds = <...>` | índices da fita de LEDs. Serve para LEDs sem tecla, como o underglow (0 a 5) |
 | `keys = <...>` | posições de tecla (0 a 41). Vale para as duas metades, porque cada metade resolve a posição pelo seu próprio mapa de LEDs |
-| `all-leds;` | pinta todos os LEDs da metade. Não combine com `keys` nem `leds` |
+| `all-leds;` | pinta todos os LEDs da metade. Não combine com `keys` nem `leds`. Com `opacity` 100, o overlay cobre tudo: o efeito principal e os overlays declarados antes dele nem são desenhados |
 | `opacity = <n>` | força da mistura, em %. 100 (padrão) substitui o que estiver embaixo; valores menores misturam |
 | `local;` | avalia a condição em cada metade, em vez de na central. Veja a [referência](#referência-de-efeitos-condições-e-overlays) |
 
 `leds` e `keys` podem ser usados juntos. Exemplos:
 
 ```dts
-// indicador de camada também nas teclas de polegar das duas metades
+// o underglow e as teclas de polegar das duas metades
 leds = <0 1 2 3 4 5>;
 keys = <36 37 38 39 40 41>;
 ```
@@ -479,15 +541,15 @@ Para remover o indicador de Caps Lock, apague os nós `ov_caps` (em `rgb_overlay
 #### Adicionar um efeito novo
 
 1. Declare o efeito dentro de `kprgb`, **depois do último**: assim os índices dos efeitos que já existem não mudam.
-2. Atribua o efeito a uma tecla. Na camada SYS há teclas transparentes (`&trans`) que podem ser trocadas, por exemplo as quatro últimas da linha 3 da direita (posições 32 a 35).
+2. Atribua o efeito a uma tecla. Na camada SYS há teclas transparentes (`&trans`) que podem ser trocadas, por exemplo as três últimas da linha 3 da direita (posições 33 a 35).
 3. Faça commit e push, baixe o firmware e grave as duas metades.
 4. Aperte `RGB_RESET`.
 
 Exemplo (onda de brilho que atravessa o teclado), **não testado neste teclado**:
 
 ```dts
-// dentro de kprgb, depois de fx_starlight
-// 8 - onda de brilho da esquerda para a direita
+// dentro de kprgb, depois de fx_static
+// 9 - onda de brilho da esquerda para a direita
 fx_wave: fx_wave {
     compatible = "keypaw,rgb-matrix-breathe";
     #binding-cells = <0>;
@@ -498,8 +560,8 @@ fx_wave: fx_wave {
 ```
 
 ```dts
-// na camada SYS: troca o primeiro &trans depois de &fx_starlight
-&fx_heatmap     &fx_starlight   &fx_wave        &trans          &trans          &trans
+// na camada SYS: troca o primeiro &trans depois de &fx_static
+&fx_heatmap     &fx_starlight   &fx_static      &fx_wave        &trans          &trans
 ```
 
 Mais ideias de efeito, todas só com propriedades (veja os valores em [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays); **não testadas neste teclado**):
@@ -516,14 +578,14 @@ Mais ideias de efeito, todas só com propriedades (veja os valores em [Referênc
 | Reativo acumulando várias teclas | `reactive` com `multi` |
 | Chuva de pixels coloridos | `rain` com `mode = "pixel"` |
 | Chuva digital estilo Matrix | `digital-rain` |
-| Cada LED com uma cor fixa | `static` com `led-colors = <...>` |
+| Cada LED com uma cor fixa | `static` com `led-colors = <...>` (já em uso: `fx_static` e os mapas de camada) |
 
-#### Adicionar o indicador de uma camada nova
+#### Adicionar o mapa de cores de uma camada nova
 
-Depois de criar uma camada no keymap (ela recebe o próximo índice, por exemplo 6), crie a condição e o overlay dela:
+Depois de criar uma camada no keymap (ela recebe o próximo índice, por exemplo 6), crie a condição, o overlay e o bloco de cores dela. **Não testada neste teclado.**
 
 ```dts
-// dentro de rgb_conditions
+// em config/corne.keymap, dentro de rgb_conditions
 cond_game: cond_game {
     compatible = "keypaw,rgb-condition-layer";
     layer = <6>;               // índice da camada no keymap
@@ -531,27 +593,48 @@ cond_game: cond_game {
 ```
 
 ```dts
-// dentro de rgb_overlays (declare depois dos outros para ficar por cima)
+// em config/corne.keymap, dentro de rgb_overlays: depois dos outros mapas de camada
+// (para ficar por cima deles) e antes de ov_caps (para o Caps Lock continuar por cima)
 ov_game: ov_game {
     compatible = "keypaw,rgb-overlay";
     condition = <&cond_game>;
-    leds = <0 1 2 3 4 5>;
-    fx_ov_game {
-        compatible = "keypaw,rgb-matrix-solid";
+    all-leds;
+    map_game: fx_ov_game {
+        compatible = "keypaw,rgb-matrix-static";
         #binding-cells = <0>;
-        color = <0xFF0000>;
     };
 };
 ```
 
-Grave as duas metades e aperte `RGB_RESET`. A condição `layer` também aceita `only-topmost;`: o indicador só aparece se essa for a camada mais alta ativa (útil para não misturar cores quando duas camadas estão ativas).
+```dts
+// no fim de config/led_colors.dtsi: um grupo de 27 valores para cada metade
+&map_game {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (OFF, OFF, OFF, OFF, OFF, OFF, /* posições 0 a 5 */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* posições 12 a 17 */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* posições 24 a 29 */
+                        OFF, OFF, OFF, /* polegares: posições 36 a 38 */
+         RED, RED, RED, RED, RED, RED)/* underglow */,
+
+        /* direita */
+        (OFF, OFF, OFF, OFF, OFF, OFF, /* posições 6 a 11 */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* posições 18 a 23 */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* posições 30 a 35 */
+         OFF, OFF, OFF, /* polegares: posições 39 a 41 */
+         RED, RED, RED, RED, RED, RED)/* underglow */
+    )>;
+};
+```
+
+Grave as duas metades. A condição `layer` também aceita `only-topmost;`: o mapa só aparece se essa for a camada mais alta ativa (útil para não misturar cores quando duas camadas estão ativas).
 
 #### Dar um efeito próprio ao underglow
 
 Um overlay sem `condition` pinta sempre. Com um efeito filho qualquer, ele dá ao underglow uma animação própria, independente do efeito principal. **Não testada neste teclado.**
 
 ```dts
-// dentro de rgb_overlays, ANTES de ov_fn1, para que os indicadores de camada fiquem por cima
+// dentro de rgb_overlays, ANTES de ov_fn1, para que os mapas de camada fiquem por cima
 ov_underglow: ov_underglow {
     compatible = "keypaw,rgb-overlay";
     leds = <0 1 2 3 4 5>;
@@ -564,21 +647,21 @@ ov_underglow: ov_underglow {
 };
 ```
 
-Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele.
+Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele. Enquanto uma camada de FN1 a MEDIA está ativa, o mapa dela cobre o underglow e esta animação não é desenhada.
 
-#### Escolher quais indicadores aparecem em cada efeito
+#### Escolher quais overlays aparecem em cada efeito
 
-Por padrão, todos os overlays são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`:
+Por padrão, todos os overlays (os mapas de camada e o Caps Lock) são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`. É a forma de manter um efeito sempre visível, mesmo nas camadas FN1 a MEDIA:
 
 ```dts
 fx_rainbow: fx_rainbow {
     // ... propriedades do efeito ...
-    no-overlays;                // com este efeito, nenhum indicador é pintado
+    no-overlays;                // com este efeito, nenhum overlay é pintado (nem os mapas, nem o Caps Lock)
 };
 
-fx_solid: fx_solid {
+fx_reactive: fx_reactive {
     // ... propriedades do efeito ...
-    overlays = <&ov_caps>;      // com este efeito, só o indicador de Caps Lock é pintado
+    overlays = <&ov_caps>;      // com este efeito, só o Caps Lock é pintado: os mapas de camada não aparecem
 };
 ```
 
@@ -607,6 +690,8 @@ O mapa de cada metade está em `config/corne_left.overlay` e `config/corne_right
 - `KP_RGB_NO_KEY(x, y)`: um LED sem tecla (underglow), com coordenadas explícitas.
 
 As coordenadas usam as unidades do layout físico do Corne: 100 é a largura de uma tecla, `x` cresce para a direita e `y` para baixo. A metade esquerda ocupa `x` de 0 a 600 e a direita, de 800 a 1400. Se a fita tiver outro número de LEDs, ajuste também `chain-length` em `config/corne.keymap`. A tabela completa está em [Mapa dos LEDs](#mapa-dos-leds).
+
+Se mudar a ordem da fita, atualize também as macros `LED_CHAIN_LEFT` e `LED_CHAIN_RIGHT` em `config/led_colors.dtsi`: elas listam as posições das teclas na ordem da fita (as 6 primeiras entradas são o underglow), e é por elas que a cor de cada tecla chega ao LED certo.
 
 ### Referência de efeitos, condições e overlays
 
@@ -637,7 +722,7 @@ Esta é a lista do que o módulo oferece, não só do que está instalado. Os va
 | `starlight` | `step-interval-ms` (padrão 32), `smooth`, `dual-hue`, `dual-sat` | brilhos aleatórios |
 | `rain` | `mode`: `"pixel"` (padrão), `"flow"`, `"drops"`, `"jellybean"`, `"fractal"`; `step-interval-ms` (padrão 32) | teclas aleatórias com cores aleatórias. O modo `"drops"` precisa de uma `color` saturada para aparecer |
 | `digital-rain` | nenhuma além das comuns (`color` para um matiz que não seja verde; `duration` é o tempo de queda) | colunas caindo, estilo Matrix |
-| `static` | `led-colors`: lista de cores `0xRRGGBB`, um valor por LED, na ordem da fita | cores fixas por LED |
+| `static` | `led-colors`: lista de cores `0xRRGGBB`, um valor por LED, na ordem da fita | cores fixas por LED. Aqui o `led-colors` vem de `config/led_colors.dtsi` |
 
 **Condições** (`compatible = "keypaw,rgb-condition-<tipo>"`, declaradas em `rgb_conditions`)
 
@@ -657,7 +742,7 @@ Esta é a lista do que o módulo oferece, não só do que está instalado. Os va
 | `keypaw,rgb-overlay` | `condition` (opcional; sem ela pinta sempre) e as propriedades comuns; exige exatamente um efeito filho | pinta o efeito filho sobre os LEDs alvo enquanto a condição for verdadeira |
 | `keypaw,rgb-overlay-battery` | `condition`, `color` (padrão `0x00FF00`), `background-color` (padrão `0x000000`), `reverse` e as propriedades comuns | desenha uma barra com a carga da bateria da própria metade nos LEDs alvo. Costuma ser combinado com uma condição `latch` para ligar e desligar por tecla. **Não instalado neste repositório** |
 
-Propriedades comuns dos overlays: `keys`, `leds`, `all-leds`, `opacity` (padrão 100) e `local`. Sem `local`, a condição é avaliada na metade central e o resultado é enviado à periférica; com `local`, cada metade avalia a sua própria condição.
+Propriedades comuns dos overlays: `keys`, `leds`, `all-leds`, `opacity` (padrão 100) e `local`. Sem `local`, a condição é avaliada na metade central e o resultado é enviado à periférica; com `local`, cada metade avalia a sua própria condição. Um overlay com `all-leds` e `opacity` 100 cobre todos os LEDs: o efeito principal e os overlays declarados antes dele nem são desenhados.
 
 ### Mapa dos LEDs
 
@@ -695,6 +780,8 @@ Underglow (LEDs 0 a 5), com coordenadas em unidades do layout (100 é a largura 
 | 3 | 144, 273 | 1256, 273 |
 | 4 | 344, 332 | 1056, 332 |
 | 5 | 550, 356 | 850, 356 |
+
+Os mapas de cores por camada ([Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock)) escrevem as cores na ordem do teclado. As macros `LED_CHAIN_LEFT` e `LED_CHAIN_RIGHT`, em `config/led_colors.dtsi`, reordenam os valores para a ordem da fita acima: se o `mapping` mudar, elas precisam mudar também.
 
 ## Telas OLED
 
@@ -824,6 +911,7 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | Sintoma | Causa e solução |
 |---|---|
 | Mudei o `.keymap` e as teclas não mudaram | Se você já editou teclas pelo ZMK Studio, o Studio tem prioridade. Use "Restore Stock Settings" no Studio ou grave o `settings_reset` nas duas metades e depois o firmware |
+| A tecla do efeito `static` (camada SYS, posição 32) não aparece no teclado | O mesmo caso da linha anterior: se você já editou teclas pelo Studio, atribua `fx_static` a uma tecla pelo próprio Studio ou use "Restore Stock Settings" |
 | A cor ou a velocidade que ajustei nas teclas voltou depois de reiniciar | Sem `persist-id`, matiz, saturação e velocidade não são salvos. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
 | O efeito ou o brilho voltou ao anterior depois de desligar o teclado | O estado é gravado 60 s depois da última alteração. Espere um minuto antes de desligar |
 | Mudei `initial-effect` ou `initial-brightness` e nada mudou | O estado salvo tem prioridade sobre os valores iniciais. Aperte `RGB_RESET` (camada SYS, posição 23) depois de gravar |
@@ -835,6 +923,9 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | A metade periférica trava ao ligar a tela | Não reduza `CONFIG_ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE` abaixo de `4096` |
 | A metade direita não conecta à esquerda ou há pareamento estranho | Grave o `settings_reset` nas duas metades, depois o firmware em cada uma, e pareie o teclado de novo no computador |
 | O build falha ao baixar um módulo | O commit fixado em `config/west.yml` não existe mais (branch reescrita) ou o hash está errado. Confira com `git ls-remote` |
+| O build falha com `Defina CORNE_HALF_LEFT em corne_left.overlay e CORNE_HALF_RIGHT em corne_right.overlay` | O `config/led_colors.dtsi` precisa saber qual metade está sendo compilada. `CORNE_HALF_LEFT` é definida em `config/corne_left.overlay` e `CORNE_HALF_RIGHT` em `config/corne_right.overlay`. Não apague essas linhas nem renomeie os arquivos |
+| O build falha com erro de macro em `config/led_colors.dtsi` (algo como `macro "LED_CHAIN_LEFT" requires 27 arguments`) | Um grupo de `LED_MAP` não tem exatamente 27 valores (21 teclas e 6 de underglow). Confira as vírgulas e os parênteses |
+| Faltam cores em uma camada depois de editar `config/led_colors.dtsi` | Dentro de `LED_MAP(...)` só valem comentários `/* ... */`. Um comentário `//` apaga o resto da linha e as cores seguintes se perdem sem aviso |
 | Avisos do Kconfig sobre widgets de WPM no build da metade direita | Esperados: esses widgets só existem na metade central |
 
 ## Manter este README atualizado
@@ -843,9 +934,10 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 
 | O que mudou | Seção a revisar |
 |---|---|
-| Teclas, camadas ou nomes de camada em `config/corne.keymap` | [Teclado: posições, camadas e funções](#teclado-posições-camadas-e-funções) |
+| Teclas, camadas ou nomes de camada em `config/corne.keymap` | [Teclado: posições, camadas e funções](#teclado-posições-camadas-e-funções) e as cores da camada em `config/led_colors.dtsi` ([Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock)) |
 | Efeitos (`kprgb`, `fx_*`), brilhos, condições ou overlays em `config/corne.keymap` | [Luzes](#luzes-rgb-por-tecla-e-underglow) |
-| `config/corne_left.overlay` ou `config/corne_right.overlay` | [Mapa dos LEDs](#mapa-dos-leds) |
+| `config/corne_left.overlay` ou `config/corne_right.overlay` | [Mapa dos LEDs](#mapa-dos-leds) e, se o `mapping` mudar, `LED_CHAIN_LEFT` e `LED_CHAIN_RIGHT` em `config/led_colors.dtsi` |
+| `config/led_colors.dtsi` (cores, paleta, ordem dos LEDs) | [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock) e as receitas do [Guia de configuração](#guia-de-configuração) que mostram trechos do arquivo |
 | `config/corne.conf` | [Telas OLED](#telas-oled), [Funções e recursos](#funções-e-recursos) e [O que é salvo na memória](#o-que-é-salvo-na-memória) |
 | `config/west.yml` ou `.github/workflows/build.yml` | [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | `build.yaml` | [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) |

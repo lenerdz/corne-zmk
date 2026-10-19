@@ -19,7 +19,9 @@
  * duas metades (e estao aqui, no keymap compartilhado, por isso): o efeito e o
  * overlay sao identificados pela posicao em que foram declarados.
  * O mapeamento dos LEDs de cada metade fica em corne_left.overlay e
- * corne_right.overlay.
+ * corne_right.overlay. As cores de cada LED em cada camada ficam em
+ * led_colors.dtsi (incluido no fim deste arquivo): o led-colors dos mapas
+ * pode ter valores diferentes em cada metade, a estrutura nao.
  */
 / {
     behaviors {
@@ -93,6 +95,13 @@
                 color = <0xFFFFFF>;
                 smooth;
             };
+
+            // 8 - mapa de cores da camada base (QWERTY); as cores ficam em
+            // led_colors.dtsi, no bloco &fx_static
+            fx_static: fx_static {
+                compatible = "keypaw,rgb-matrix-static";
+                #binding-cells = <0>;
+            };
         };
     };
 
@@ -131,56 +140,53 @@
     rgb_overlays: rgb_overlays {
         compatible = "keypaw,rgb-overlays";
 
-        // Underglow (LEDs 0-5 de cada metade) mostra a camada ativa.
-        // Segurando FN1 + SYS ao mesmo tempo, a cor de SYS fica por cima.
+        // Mapa de cores de cada camada (FN1 a MEDIA). Enquanto a camada esta
+        // ativa, o overlay cobre todos os LEDs da metade (teclas e underglow)
+        // com as cores de led_colors.dtsi e o efeito principal fica pausado por
+        // baixo. Segurando FN1 + SYS ao mesmo tempo, o mapa de SYS fica por cima.
         ov_fn1: ov_fn1 {
             compatible = "keypaw,rgb-overlay";
             condition = <&cond_fn1>;
-            leds = <0 1 2 3 4 5>;
-            fx_ov_fn1 {
-                compatible = "keypaw,rgb-matrix-solid";
+            all-leds;
+            map_fn1: fx_ov_fn1 {
+                compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
-                color = <0xFF8000>;
             };
         };
         ov_raise: ov_raise {
             compatible = "keypaw,rgb-overlay";
             condition = <&cond_raise>;
-            leds = <0 1 2 3 4 5>;
-            fx_ov_raise {
-                compatible = "keypaw,rgb-matrix-solid";
+            all-leds;
+            map_raise: fx_ov_raise {
+                compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
-                color = <0x0080FF>;
             };
         };
         ov_nav: ov_nav {
             compatible = "keypaw,rgb-overlay";
             condition = <&cond_nav>;
-            leds = <0 1 2 3 4 5>;
-            fx_ov_nav {
-                compatible = "keypaw,rgb-matrix-solid";
+            all-leds;
+            map_nav: fx_ov_nav {
+                compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
-                color = <0x00FF00>;
             };
         };
         ov_sys: ov_sys {
             compatible = "keypaw,rgb-overlay";
             condition = <&cond_sys>;
-            leds = <0 1 2 3 4 5>;
-            fx_ov_sys {
-                compatible = "keypaw,rgb-matrix-solid";
+            all-leds;
+            map_sys: fx_ov_sys {
+                compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
-                color = <0xFF00FF>;
             };
         };
         ov_media: ov_media {
             compatible = "keypaw,rgb-overlay";
             condition = <&cond_media>;
-            leds = <0 1 2 3 4 5>;
-            fx_ov_media {
-                compatible = "keypaw,rgb-matrix-solid";
+            all-leds;
+            map_media: fx_ov_media {
+                compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
-                color = <0x00FFFF>;
             };
         };
 
@@ -282,7 +288,7 @@
         // 4 — Bluetooth + RGB
         //   esquerda: BT na 1a fileira; liga/desliga, efeito, cor e brilho na 2a
         //   direita : efeitos diretos na 1a fileira; EFR/saturacao/velocidade/
-        //             reset na 2a; mais dois efeitos na 3a
+        //             reset na 2a; mais tres efeitos na 3a
         sys_layer {
             display-name = "SYS";
 
@@ -294,7 +300,7 @@
                 &kprgb RGB_EFR  &kprgb RGB_SAI  &kprgb RGB_SAD  &kprgb RGB_SPI  &kprgb RGB_SPD  &kprgb RGB_RESET
 
                 &studio_unlock  &trans          &trans          &trans          &trans          &trans
-                &fx_heatmap     &fx_starlight   &trans          &trans          &trans          &trans
+                &fx_heatmap     &fx_starlight   &fx_static      &trans          &trans          &trans
 
                 &kp LGUI  &trans    &kp SPACE
                 &kp RET   &trans    &kp RALT
@@ -321,3 +327,6 @@
         };
     };
 };
+
+// Cores de cada LED em cada camada: preenche o led-colors dos mapas acima.
+#include "led_colors.dtsi"

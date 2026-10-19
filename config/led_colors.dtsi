@@ -1,0 +1,207 @@
+/*
+ * Cores de cada LED em cada camada (zmk-rgb-matrix, efeito "static").
+ *
+ * Este arquivo e incluido no final de corne.keymap. Cada bloco "&map_<camada>"
+ * preenche o led-colors do efeito static de uma camada: o de um overlay de
+ * camada (FN1 a MEDIA, cobrem os 27 LEDs de cada metade enquanto a camada esta
+ * ativa) ou o do efeito fx_static (mapa da camada base, QWERTY). A estrutura
+ * (overlays, condicoes, efeitos) fica em corne.keymap; aqui ficam so as cores.
+ *
+ * COMO EDITAR
+ *   Troque o nome da cor de uma posicao. Cada metade tem 3 linhas de 6 teclas,
+ *   os 3 polegares e os 6 LEDs de underglow, nesta ordem:
+ *
+ *     esquerda:   0  1  2  3  4  5       direita:   6  7  8  9 10 11
+ *                12 13 14 15 16 17                 18 19 20 21 22 23
+ *                24 25 26 27 28 29                 30 31 32 33 34 35
+ *                         36 37 38                 39 40 41
+ *
+ *   OFF apaga o LED. O comentario ao lado de cada linha diz que tecla era
+ *   aquela no keymap quando o mapa foi escrito (se mudar a tecla, atualize a
+ *   cor e o comentario).
+ *
+ * REGRAS
+ *   - Dentro de LED_MAP(...) use so comentarios do tipo barra-asterisco. Um
+ *     comentario de duas barras engole o resto da linha depois do pre-processador
+ *     e apaga cores sem avisar.
+ *   - Cada metade usa o seu proprio grupo: o das teclas da esquerda e o das
+ *     teclas da direita. Os grupos tem sempre 27 valores (21 teclas + 6 de
+ *     underglow).
+ *   - As cores sao 0xRRGGBB com brilho cheio. O brilho real vem do kprgb
+ *     (RGB_BRI e RGB_BRD, max-brightness) e vale para todas as cores igualmente.
+ */
+
+/*
+ * Qual metade esta sendo compilada. CORNE_HALF_LEFT e CORNE_HALF_RIGHT sao
+ * definidos em corne_left.overlay e corne_right.overlay, que entram no build
+ * antes do keymap.
+ */
+#if defined(CORNE_HALF_LEFT)
+#define LED_MAP(left, right) LED_CHAIN_LEFT left
+#elif defined(CORNE_HALF_RIGHT)
+#define LED_MAP(left, right) LED_CHAIN_RIGHT right
+#else
+#error "Defina CORNE_HALF_LEFT em corne_left.overlay e CORNE_HALF_RIGHT em corne_right.overlay"
+#endif
+
+/*
+ * Paleta. Para criar uma cor nova, acrescente uma linha (nome e 0xRRGGBB).
+ */
+#define OFF 0x000000 /* apagado */
+#define WHT 0xFFFFFF /* branco */
+#define RED 0xFF0000 /* vermelho */
+#define ORG 0xFF8000 /* laranja */
+#define YEL 0xFFFF00 /* amarelo */
+#define LIM 0x80FF00 /* verde-limao */
+#define GRN 0x00FF00 /* verde */
+#define TEA 0x00FF80 /* verde-agua */
+#define CYN 0x00FFFF /* ciano */
+#define SKY 0x0080FF /* azul-claro */
+#define BLU 0x0000FF /* azul */
+#define PUR 0x8000FF /* roxo */
+#define MAG 0xFF00FF /* magenta */
+#define PNK 0xFF0080 /* rosa */
+
+/*
+ * Ordem dos LEDs na fita de cada metade (indice da fita, 0 a 26). Esta lista
+ * precisa seguir o "mapping" de corne_left.overlay e corne_right.overlay: se
+ * mudar um, mude o outro.
+ *   LEDs 0 a 5 : underglow (u0 a u5)
+ *   LEDs 6 a 26: um LED sob cada tecla (k<posicao da tecla>)
+ */
+#define LED_CHAIN_LEFT(                                                        \
+    k0,  k1,  k2,  k3,  k4,  k5,                                               \
+    k12, k13, k14, k15, k16, k17,                                              \
+    k24, k25, k26, k27, k28, k29,                                              \
+                   k36, k37, k38,                                              \
+    u0,  u1,  u2,  u3,  u4,  u5)                                               \
+    u0 u1 u2 u3 u4 u5                                                          \
+    k38 k29 k17 k5 k4 k16 k28 k37 k36                                          \
+    k27 k15 k3 k2 k14 k26 k25 k13 k1                                           \
+    k0 k12 k24
+
+#define LED_CHAIN_RIGHT(                                                       \
+    k6,  k7,  k8,  k9,  k10, k11,                                              \
+    k18, k19, k20, k21, k22, k23,                                              \
+    k30, k31, k32, k33, k34, k35,                                              \
+    k39, k40, k41,                                                             \
+    u0,  u1,  u2,  u3,  u4,  u5)                                               \
+    u0 u1 u2 u3 u4 u5                                                          \
+    k39 k30 k18 k6 k7 k19 k31 k40 k41                                          \
+    k32 k20 k8 k9 k21 k33 k34 k22 k10                                          \
+    k11 k23 k35
+
+
+/* Camada 0: QWERTY (destaque BLU) */
+&fx_static {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (PUR, WHT, WHT, WHT, WHT, WHT, /* TAB Q W E R T */
+         PUR, WHT, WHT, WHT, WHT, WHT, /* LSHFT A S D F G */
+         PUR, WHT, WHT, WHT, WHT, WHT, /* LCTRL Z X C V B */
+                        PUR, ORG, WHT, /* LGUI FN1 SPACE (polegares) */
+         BLU, BLU, BLU, BLU, BLU, BLU)/* underglow */,
+
+        /* direita */
+        (WHT, WHT, WHT, WHT, WHT, RED, /* Y U I O P BSPC */
+         WHT, WHT, WHT, WHT, LIM, LIM, /* H J K L SEMI SQT */
+         WHT, WHT, LIM, LIM, SKY, SKY, /* N M COMMA DOT LBKT RBKT */
+         TEA, SKY, PUR, /* RET RAISE RALT (polegares) */
+         BLU, BLU, BLU, BLU, BLU, BLU)/* underglow */
+    )>;
+};
+
+/* Camada 1: FN1 (destaque ORG) */
+&map_fn1 {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (LIM, ORG, ORG, ORG, ORG, ORG, /* GRAVE F1 F2 F3 F4 F5 */
+         YEL, YEL, YEL, YEL, YEL, YEL, /* N1 N2 N3 N4 N5 N6 */
+         GRN, MAG, CYN, ORG, OFF, OFF, /* NAV SYS MEDIA F12 -- -- */
+                        PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
+         ORG, ORG, ORG, ORG, ORG, ORG)/* underglow */,
+
+        /* direita */
+        (ORG, ORG, ORG, ORG, ORG, ORG, /* F6 F7 F8 F9 F10 F11 */
+         YEL, YEL, YEL, YEL, LIM, LIM, /* N7 N8 N9 N0 MINUS EQUAL */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* -- -- -- -- -- -- */
+         TEA, SKY, PUR, /* RET -- RALT (polegares) */
+         ORG, ORG, ORG, ORG, ORG, ORG)/* underglow */
+    )>;
+};
+
+/* Camada 2: RAISE (destaque SKY) */
+&map_raise {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (RED, LIM, LIM, LIM, LIM, LIM, /* ESC EXCL AT HASH DLLR PRCNT */
+         PUR, MAG, LIM, LIM, LIM, LIM, /* LCTRL STUDIO FSLH BSLH GRAVE TILDE */
+         PUR, OFF, OFF, OFF, OFF, OFF, /* LSHFT -- -- -- -- -- */
+                        PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
+         SKY, SKY, SKY, SKY, SKY, SKY)/* underglow */,
+
+        /* direita */
+        (LIM, LIM, LIM, SKY, SKY, RED, /* CARET AMPS ASTRK LPAR RPAR BSPC */
+         LIM, LIM, SKY, SKY, SKY, SKY, /* MINUS EQUAL LBKT RBKT LBRC RBRC */
+         LIM, LIM, LIM, LIM, LIM, LIM, /* UNDER PLUS PIPE COLON DQT QMARK */
+         TEA, SKY, PUR, /* RET -- RALT (polegares) */
+         SKY, SKY, SKY, SKY, SKY, SKY)/* underglow */
+    )>;
+};
+
+/* Camada 3: NAV (destaque GRN) */
+&map_nav {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (RED, OFF, OFF, OFF, OFF, OFF, /* ESC -- -- -- -- -- */
+         PUR, LIM, LIM, LIM, LIM, ORG, /* LCTRL HOME PG_DN PG_UP END INS */
+         GRN, MAG, CYN, OFF, OFF, OFF, /* LSHFT -- -- -- -- -- */
+                        PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
+         GRN, GRN, GRN, GRN, GRN, GRN)/* underglow */,
+
+        /* direita */
+        (OFF, OFF, OFF, OFF, OFF, RED, /* -- -- -- -- -- BSPC */
+         GRN, GRN, GRN, GRN, PUR, RED, /* LEFT DOWN UP RIGHT TAB DEL */
+         LIM, LIM, LIM, LIM, OFF, OFF, /* HOME PG_DN PG_UP END -- -- */
+         TEA, SKY, PUR, /* RET -- RALT (polegares) */
+         GRN, GRN, GRN, GRN, GRN, GRN)/* underglow */
+    )>;
+};
+
+/* Camada 4: SYS (destaque MAG) */
+&map_sys {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (RED, BLU, BLU, BLU, BLU, BLU, /* BT_CLR BT0 BT1 BT2 BT3 BT4 */
+         WHT, PNK, ORG, ORG, YEL, YEL, /* RGB_TOG RGB_EFF RGB_HUI RGB_HUD RGB_BRI RGB_BRD */
+         MAG, MAG, CYN, OFF, OFF, OFF, /* STUDIO -- -- -- -- -- */
+                        PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
+         MAG, MAG, MAG, MAG, MAG, MAG)/* underglow */,
+
+        /* direita */
+        (PNK, PNK, PNK, PNK, PNK, PNK, /* solid breathe spectrum rainbow reactive ripple */
+         PNK, LIM, LIM, CYN, CYN, RED, /* RGB_EFR RGB_SAI RGB_SAD RGB_SPI RGB_SPD RGB_RESET */
+         PNK, PNK, PNK, OFF, OFF, OFF, /* heatmap starlight static -- -- -- */
+         TEA, SKY, PUR, /* RET -- RALT (polegares) */
+         MAG, MAG, MAG, MAG, MAG, MAG)/* underglow */
+    )>;
+};
+
+/* Camada 5: MEDIA (destaque CYN) */
+&map_media {
+    led-colors = <LED_MAP(
+        /* esquerda */
+        (RED, ORG, OFF, OFF, OFF, WHT, /* C_PWR C_SLEEP -- -- -- CAPS_WORD */
+         WHT, CYN, CYN, YEL, YEL, WHT, /* C_MUTE C_VOL_DN C_VOL_UP C_BRI_DN C_BRI_UP CAPS */
+         GRN, MAG, CYN, OFF, OFF, OFF, /* -- -- -- -- -- -- */
+                        PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
+         CYN, CYN, CYN, CYN, CYN, CYN)/* underglow */,
+
+        /* direita */
+        (OFF, OFF, OFF, OFF, LIM, LIM, /* -- -- -- -- PSCRN SLCK */
+         GRN, TEA, GRN, ORG, OFF, OFF, /* C_PREV C_PP C_NEXT C_STOP -- -- */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* -- -- -- -- -- -- */
+         TEA, SKY, PUR, /* RET -- RALT (polegares) */
+         CYN, CYN, CYN, CYN, CYN, CYN)/* underglow */
+    )>;
+};

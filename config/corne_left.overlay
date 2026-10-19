@@ -14,6 +14,14 @@
  *   24-26 coluna externa de cima para baixo.
  */
 
+/*
+ * Marca esta metade (esquerda) para o led_colors.dtsi: o keymap inclui esse
+ * arquivo e, com esta macro, ele escolhe as cores desta metade em cada
+ * camada. Os overlays da pasta config entram no build antes do keymap,
+ * por isso a macro ja existe quando o keymap e lido.
+ */
+#define CORNE_HALF_LEFT
+
 #include <dt-bindings/keypaw/rgb_matrix.h>
 
 / {

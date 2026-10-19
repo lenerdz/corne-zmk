@@ -14,14 +14,6 @@
  *   24-26 coluna externa de cima para baixo (BSPC SQT RBKT).
  */
 
-/*
- * Marca esta metade (direita) para o led_colors.dtsi: o keymap inclui esse
- * arquivo e, com esta macro, ele escolhe as cores desta metade em cada
- * camada. Os overlays da pasta config entram no build antes do keymap,
- * por isso a macro ja existe quando o keymap e lido.
- */
-#define CORNE_HALF_RIGHT
-
 #include <dt-bindings/keypaw/rgb_matrix.h>
 
 / {
@@ -48,5 +40,15 @@
             /* 24-26: coluna externa (BSPC, linha do meio, linha de baixo) */
             11 23 35
         >;
+
+        /*
+         * Slots de cor (iguais nas duas metades): 0-41 = posicao da tecla,
+         * 42-47 = underglow da esquerda, 48-53 = underglow da direita.
+         * no-key-slots diz o slot de cada LED sem tecla (os 6 de underglow),
+         * na ordem do mapping. Os mapas de cor (led_colors.dtsi) sao indexados
+         * por slot, por isso a mesma lista de cores vale para as duas metades.
+         */
+        slot-count = <54>;
+        no-key-slots = <48 49 50 51 52 53>;
     };
 };

@@ -2,7 +2,8 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    # Forks mantidos em https://github.com/lenerdz dos modulos zmk-rgb-matrix e zmk-nice-oled.
+    # Forks mantidos em https://github.com/lenerdz dos modulos zmk-rgb-matrix e zmk-nice-oled
+    # e do protocolo do ZMK Studio (zmk-studio-messages).
     - name: lenerdz
       url-base: https://github.com/lenerdz
     # Additional modules containing boards/shields/custom code can be listed here as well
@@ -18,12 +19,13 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit 7b72be8) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit 6ebecb4) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
-      # polegar nao reagem nos efeitos por posicao).
-      # Voltar para o upstream (remote gudzpoz) quando o autor corrigir os dois.
-      revision: 7b72be809777d87d25848194063ff25f04f0f04e
+      # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
+      # (slots de cor, registros na flash, sync da metade direita e requisicoes do ZMK Studio).
+      # Voltar para o upstream (remote gudzpoz) so se ele incorporar os tres.
+      revision: 6ebecb4bdd21bc6ca2969a1bac4879b166858d8c
     - name: zmk-nice-oled
       remote: lenerdz
       # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 479a516) =
@@ -32,5 +34,16 @@ manifest:
       # icone de saida fica em branco enquanto o teclado esta desconectado).
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
       revision: 479a516e01c942df79567475e424de4d1560e28c
+    # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
+    # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
+    # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao
+    # subsistema keymap as requisicoes dos mapas de cor (get_led_info, get_led_map,
+    # set_led_colors, save_led_changes, discard_led_changes, restore_led_defaults)
+    # e a notificacao unsaved_led_changes_status_changed. Sem ele o modulo
+    # zmk-rgb-matrix nao compila com o ZMK Studio ligado.
+    - name: zmk-studio-messages
+      remote: lenerdz
+      revision: cfcce43b2156151fcd09902de1f4887be387b905
+      path: modules/msgs/zmk-studio-messages
   self:
     path: config

@@ -20,8 +20,13 @@
  * overlay sao identificados pela posicao em que foram declarados.
  * O mapeamento dos LEDs de cada metade fica em corne_left.overlay e
  * corne_right.overlay. As cores de cada LED em cada camada ficam em
- * led_colors.dtsi (incluido no fim deste arquivo): o led-colors dos mapas
- * pode ter valores diferentes em cada metade, a estrutura nao.
+ * led_colors.dtsi (incluido no fim deste arquivo): o slot-colors dos mapas e
+ * o mesmo nas duas metades, cada uma usa so os slots dos seus LEDs.
+ *
+ * Os mapas de cor (efeitos static com layer-id) podem ser editados e salvos
+ * pelo ZMK Studio. O layer-id e o ID da camada: a ordem em que ela foi
+ * declarada no keymap (0 = QWERTY, 1 = FN1, 2 = RAISE, 3 = NAV, 4 = SYS,
+ * 5 = MEDIA). O ID nao muda se as camadas forem reordenadas no ZMK Studio.
  */
 / {
     behaviors {
@@ -101,6 +106,7 @@
             fx_static: fx_static {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <0>;
             };
         };
     };
@@ -113,7 +119,9 @@
             compatible = "keypaw,rgb-condition-caps-lock";
         };
 
-        // Camadas (o numero segue a ordem das camadas no keymap)
+        // Camadas. O numero e o ID da camada: a ordem em que ela foi declarada
+        // no keymap (1 = FN1 ... 5 = MEDIA), que nao muda quando as camadas sao
+        // reordenadas no ZMK Studio.
         cond_fn1: cond_fn1 {
             compatible = "keypaw,rgb-condition-layer";
             layer = <1>;
@@ -151,6 +159,7 @@
             map_fn1: fx_ov_fn1 {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <1>;
             };
         };
         ov_raise: ov_raise {
@@ -160,6 +169,7 @@
             map_raise: fx_ov_raise {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <2>;
             };
         };
         ov_nav: ov_nav {
@@ -169,6 +179,7 @@
             map_nav: fx_ov_nav {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <3>;
             };
         };
         ov_sys: ov_sys {
@@ -178,6 +189,7 @@
             map_sys: fx_ov_sys {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <4>;
             };
         };
         ov_media: ov_media {
@@ -187,6 +199,7 @@
             map_media: fx_ov_media {
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
+                layer-id = <5>;
             };
         };
 

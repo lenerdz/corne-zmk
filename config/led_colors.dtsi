@@ -3,7 +3,7 @@
  *
  * Este arquivo e incluido no final de corne.keymap. Cada bloco "&map_<camada>"
  * preenche o slot-colors do efeito static de uma camada: o de um overlay de
- * camada (FN1 a MEDIA, cobrem os 27 LEDs de cada metade enquanto a camada esta
+ * camada (FN1 a STENO, cobrem os 27 LEDs de cada metade enquanto a camada esta
  * ativa) ou o do efeito fx_static (mapa da camada base, QWERTY). A estrutura
  * (overlays, condicoes, efeitos e o layer-id de cada mapa) fica em
  * corne.keymap; aqui ficam so as cores.
@@ -179,7 +179,7 @@
         /* direita */
         (PNK, PNK, PNK, PNK, PNK, PNK, /* solid breathe spectrum rainbow reactive ripple */
          PNK, LIM, LIM, CYN, CYN, RED, /* RGB_EFR RGB_SAI RGB_SAD RGB_SPI RGB_SPD RGB_RESET */
-         PNK, PNK, PNK, OFF, OFF, OFF, /* heatmap starlight static -- -- -- */
+         PNK, PNK, PNK, PUR, WHT, OFF, /* heatmap starlight static steno_on TO6 -- */
          TEA, SKY, PUR, /* RET -- RALT (polegares) */
          MAG, MAG, MAG, MAG, MAG, MAG)/* underglow */
     )>;
@@ -201,5 +201,24 @@
          OFF, OFF, OFF, OFF, OFF, OFF, /* -- -- -- -- -- -- */
          TEA, SKY, PUR, /* RET -- RALT (polegares) */
          CYN, CYN, CYN, CYN, CYN, CYN)/* underglow */
+    )>;
+};
+
+/* Camada 6: STENO (destaque PUR) */
+&map_steno {
+    slot-colors = <LED_SLOTS(
+        /* esquerda */
+        (RED, CYN, CYN, CYN, CYN, MAG, /* steno_off Q W E R T */
+         WHT, CYN, CYN, CYN, CYN, MAG, /* TO0 A S D F G */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* -- -- -- -- -- -- */
+                        YEL, GRN, GRN, /* N1 C V (polegares) */
+         PUR, PUR, PUR, PUR, PUR, PUR)/* underglow */,
+
+        /* direita */
+        (MAG, ORG, ORG, ORG, ORG, ORG, /* Y U I O P LBKT */
+         MAG, ORG, ORG, ORG, ORG, ORG, /* H J K L SEMI SQT */
+         OFF, OFF, OFF, OFF, OFF, OFF, /* -- -- -- -- -- -- */
+         GRN, GRN, YEL, /* N M N0 (polegares) */
+         PUR, PUR, PUR, PUR, PUR, PUR)/* underglow */
     )>;
 };

@@ -26,7 +26,8 @@
  * Os mapas de cor (efeitos static com layer-id) podem ser editados e salvos
  * pelo ZMK Studio. O layer-id e o ID da camada: a ordem em que ela foi
  * declarada no keymap (0 = QWERTY, 1 = FN1, 2 = RAISE, 3 = NAV, 4 = SYS,
- * 5 = MEDIA). O ID nao muda se as camadas forem reordenadas no ZMK Studio.
+ * 5 = MEDIA, 6 = STENO). O ID nao muda se as camadas forem reordenadas no
+ * ZMK Studio.
  */
 / {
     behaviors {
@@ -120,7 +121,7 @@
         };
 
         // Camadas. O numero e o ID da camada: a ordem em que ela foi declarada
-        // no keymap (1 = FN1 ... 5 = MEDIA), que nao muda quando as camadas sao
+        // no keymap (1 = FN1 ... 6 = STENO), que nao muda quando as camadas sao
         // reordenadas no ZMK Studio.
         cond_fn1: cond_fn1 {
             compatible = "keypaw,rgb-condition-layer";
@@ -142,13 +143,17 @@
             compatible = "keypaw,rgb-condition-layer";
             layer = <5>;
         };
+        cond_steno: cond_steno {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <6>;
+        };
     };
 
     // A ordem de declaracao e a ordem de pintura: o ultimo fica por cima.
     rgb_overlays: rgb_overlays {
         compatible = "keypaw,rgb-overlays";
 
-        // Mapa de cores de cada camada (FN1 a MEDIA). Enquanto a camada esta
+        // Mapa de cores de cada camada (FN1 a STENO). Enquanto a camada esta
         // ativa, o overlay cobre todos os LEDs da metade (teclas e underglow)
         // com as cores de led_colors.dtsi e o efeito principal fica pausado por
         // baixo. Segurando FN1 + SYS ao mesmo tempo, o mapa de SYS fica por cima.
@@ -202,6 +207,16 @@
                 layer-id = <5>;
             };
         };
+        ov_steno: ov_steno {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_steno>;
+            all-leds;
+            map_steno: fx_ov_steno {
+                compatible = "keypaw,rgb-matrix-static";
+                #binding-cells = <0>;
+                layer-id = <6>;
+            };
+        };
 
         // Caps Lock: acende a coluna externa da metade esquerda (TAB e as duas
         // teclas abaixo) em branco.
@@ -214,6 +229,60 @@
                 #binding-cells = <0>;
                 color = <0xFFFFFF>;
             };
+        };
+    };
+};
+
+/*
+ * Modo de estenotipia (Plover)
+ *
+ * A camada STENO (ID 6) faz o teclado mandar as teclas de um teclado de
+ * estenotipia no mapa padrao "Keyboard" do Plover (cada tecla manda a letra que
+ * o Plover le como uma tecla de steno). O Plover precisa estar aberto no
+ * computador, com a maquina "Keyboard" e os dicionarios padrao (o commands.json
+ * traz os acordes de ligar e desligar).
+ *
+ * Os dois macros abaixo trocam de camada e mandam ao Plover o acorde que liga
+ * ou desliga a saida de steno, para o computador acompanhar o teclado:
+ *   steno_on  : vai para a camada STENO e manda PHRO*PB ({PLOVER:RESUME})
+ *   steno_off : volta para a camada QWERTY e manda PHRO*F ({PLOVER:SUSPEND})
+ * Para trocar so a camada, sem falar com o Plover, use &to 6 e &to 0.
+ *
+ * Os acordes sao os do commands.json do Plover, escritos nas teclas do mapa
+ * padrao: P- H- R- O- = E R F V, * = T, -F = U, -P = I, -B = K. O de ligar tem 7
+ * teclas ao mesmo tempo, por isso o NKRO (CONFIG_ZMK_HID_REPORT_TYPE_NKRO em
+ * corne.conf) e obrigatorio.
+ */
+/ {
+    macros {
+        steno_on: steno_on {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Steno On";
+            wait-ms = <20>;
+            tap-ms = <20>;
+            bindings = <
+                &to 6
+                &macro_press
+                &kp E &kp R &kp F &kp V &kp T &kp I &kp K
+                &macro_release
+                &kp E &kp R &kp F &kp V &kp T &kp I &kp K
+            >;
+        };
+
+        steno_off: steno_off {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Steno Off";
+            wait-ms = <20>;
+            tap-ms = <20>;
+            bindings = <
+                &to 0
+                &macro_press
+                &kp E &kp R &kp F &kp V &kp T &kp U
+                &macro_release
+                &kp E &kp R &kp F &kp V &kp T &kp U
+            >;
         };
     };
 };
@@ -301,7 +370,8 @@
         // 4 — Bluetooth + RGB
         //   esquerda: BT na 1a fileira; liga/desliga, efeito, cor e brilho na 2a
         //   direita : efeitos diretos na 1a fileira; EFR/saturacao/velocidade/
-        //             reset na 2a; mais tres efeitos na 3a
+        //             reset na 2a; mais tres efeitos na 3a e, depois deles, os
+        //             comandos do modo STENO (&steno_on e &to 6)
         sys_layer {
             display-name = "SYS";
 
@@ -313,7 +383,7 @@
                 &kprgb RGB_EFR  &kprgb RGB_SAI  &kprgb RGB_SAD  &kprgb RGB_SPI  &kprgb RGB_SPD  &kprgb RGB_RESET
 
                 &studio_unlock  &trans          &trans          &trans          &trans          &trans
-                &fx_heatmap     &fx_starlight   &fx_static      &trans          &trans          &trans
+                &fx_heatmap     &fx_starlight   &fx_static      &steno_on       &to 6           &trans
 
                 &kp LGUI  &trans    &kp SPACE
                 &kp RET   &trans    &kp RALT
@@ -336,6 +406,31 @@
 
                 &kp LGUI  &trans    &kp SPACE
                 &kp RET   &trans    &kp RALT
+            >;
+        };
+
+        // 6 — estenotipia (Plover, mapa padrão "Keyboard")
+        //   Cada tecla manda a letra que o Plover lê como uma tecla de steno:
+        //   esquerda: S T P H * na 1a fileira, S K W R * na 2a, A O nos polegares
+        //   direita : * F P L T D na 1a fileira, * R B G S Z na 2a, E U nos polegares
+        //   barra de números nos polegares externos; a 3a fileira fica sem uso.
+        //   Saída: &steno_off (camada QWERTY + desliga o Plover) na 1a tecla da
+        //   esquerda e &to 0 (só a camada) logo abaixo.
+        steno_layer {
+            display-name = "STENO";
+
+            bindings = <
+                &steno_off &kp Q    &kp W    &kp E    &kp R    &kp T
+                &kp Y      &kp U    &kp I    &kp O    &kp P    &kp LBKT
+
+                &to 0      &kp A    &kp S    &kp D    &kp F    &kp G
+                &kp H      &kp J    &kp K    &kp L    &kp SEMI &kp SQT
+
+                &none      &none    &none    &none    &none    &none
+                &none      &none    &none    &none    &none    &none
+
+                &kp N1     &kp C    &kp V
+                &kp N      &kp M    &kp N0
             >;
         };
     };

@@ -2,19 +2,11 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    # Additional modules containing boards/shields/custom code can be listed here as well
-    # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
-    # zmk-rgb-matrix: RGB por tecla (posicao-aware) com efeitos, overlays e sync
-    # entre as metades. Vem de um fork de https://github.com/gudzpoz/zmk-rgb-matrix
-    # com 2 correcoes: compilar com o ZMK Studio ligado e usar o layout fisico
-    # certo (sem isso as teclas do polegar nao reagem nos efeitos por posicao).
+    # Forks mantidos em https://github.com/lenerdz dos modulos zmk-rgb-matrix e zmk-nice-oled.
     - name: lenerdz
       url-base: https://github.com/lenerdz
-    # zmk-nice-oled: widgets verticais para a tela OLED. O upstream (mctechnology17)
-    # ainda esta no ZMK v0.3.0 (LVGL 8); a migracao para o ZMK main (Zephyr 4.1 +
-    # LVGL 9) e o PR #37, que vem do fork de tokyo2006.
-    - name: tokyo2006
-      url-base: https://github.com/tokyo2006
+    # Additional modules containing boards/shields/custom code can be listed here as well
+    # See https://docs.zephyrproject.org/3.2.0/develop/west/manifest.html#projects
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -25,15 +17,20 @@ manifest:
       import: app/west.yml
     - name: zmk-rgb-matrix
       remote: lenerdz
-      # Branch corne-fixes do fork (commit 7b72be8) = upstream a9add03
-      # (2026-10-08) + fix/behavior-metadata-sets-type + fix/physical-layout-lookup.
+      # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
+      # Branch corne-fixes do fork (commit 7b72be8) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
+      # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
+      # polegar nao reagem nos efeitos por posicao).
       # Voltar para o upstream (remote gudzpoz) quando o autor corrigir os dois.
       revision: 7b72be809777d87d25848194063ff25f04f0f04e
     - name: zmk-nice-oled
-      remote: tokyo2006
-      # PR #37 de mctechnology17/zmk-nice-oled ("migrate to ZMK main (Zephyr 4.1 +
-      # LVGL 9)"), branch 4.0, commit de5b2af (2026-08-15). Voltar para o upstream
-      # (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: de5b2afbd05f1a136e31ca28659373cd07d1e443
+      remote: lenerdz
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 479a516) =
+      # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
+      # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
+      # icone de saida fica em branco enquanto o teclado esta desconectado).
+      # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
+      revision: 479a516e01c942df79567475e424de4d1560e28c
   self:
     path: config

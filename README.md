@@ -287,8 +287,8 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 18 | H | `&kprgb RGB_EFR` | efeito anterior |
 | 19 | J | `&kprgb RGB_SAI` | aumenta a saturação |
 | 20 | K | `&kprgb RGB_SAD` | diminui a saturação |
-| 21 | L | `&kprgb RGB_SPI` | aumenta a velocidade da animação |
-| 22 | ; | `&kprgb RGB_SPD` | diminui a velocidade da animação |
+| 21 | L | `&kprgb RGB_SPI` | aumenta a duração do ciclo da animação em 100 ms (`CONFIG_KEYPAW_RGB_MATRIX_DURATION_STEP`): o efeito fica **mais lento**. O nome vem do ZMK, mas aqui o ajuste é no período |
+| 22 | ; | `&kprgb RGB_SPD` | diminui a duração do ciclo em 100 ms: o efeito fica **mais rápido** |
 | 23 | ' | `&kprgb RGB_RESET` | apaga o estado salvo das luzes e volta aos padrões do keymap |
 | 24 | LCTRL | `&studio_unlock` | libera a edição no ZMK Studio |
 | 30 | N | `&fx_heatmap` | escolhe o efeito `heatmap` |

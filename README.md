@@ -15,6 +15,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
   - [Camadas](#camadas)
   - [Funções e recursos](#funções-e-recursos)
   - [ZMK Studio](#zmk-studio)
+    - [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)
 - [Luzes (RGB por tecla e underglow)](#luzes-rgb-por-tecla-e-underglow)
   - [Como as luzes funcionam](#como-as-luzes-funcionam)
   - [Controles no dia a dia](#controles-no-dia-a-dia)
@@ -69,7 +70,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 - **6 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS e MEDIA. Veja [Camadas](#camadas).
 - **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 8 efeitos, troca direta de efeito por teclas na camada SYS, indicador de camada no underglow e indicador de Caps Lock. Veja [Luzes](#luzes-rgb-por-tecla-e-underglow).
 - **Telas OLED verticais** (nice!oled): saída (USB ou Bluetooth), bateria, perfil Bluetooth, velocidade de digitação e camada ativa. A tela nunca apaga. Veja [Telas OLED](#telas-oled).
-- **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar. Veja [ZMK Studio](#zmk-studio).
+- **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes e camadas. Veja [ZMK Studio](#zmk-studio).
 - **Bluetooth com 5 perfis**, **NKRO** e **Caps Word**. Veja [Funções e recursos](#funções-e-recursos).
 - **Build automático** pelo GitHub Actions, com versões fixadas do ZMK e dos módulos para que o resultado seja reproduzível. Veja [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas).
 
@@ -243,12 +244,30 @@ ENTER     --        RALT
 O ZMK Studio permite editar teclas pelo navegador, sem recompilar. Ele está habilitado só na metade esquerda: em `build.yaml`, o build `corne_left` usa o snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y`.
 
 1. Conecte a **metade esquerda** ao computador por USB.
-2. Abra [zmk.studio](https://zmk.studio) em um navegador baseado em Chromium e conecte ao teclado.
+2. Abra o app em um navegador baseado em Chromium e conecte ao teclado: [zmk.studio](https://zmk.studio) (o app oficial) ou o [fork não oficial deste projeto](https://lenerdz.github.io/zmk-studio/), que desenha ícones nas teclas (veja [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)).
 3. Para liberar a edição, pressione a tecla `&studio_unlock`: camada RAISE, posição 13, ou camada SYS, posição 24.
 
 > **Atenção:** depois que você usar o ZMK Studio para gerenciar as teclas, mudanças futuras no arquivo `.keymap` não são aplicadas até você executar a ação "Restore Stock Settings" na interface do Studio (ou gravar o `settings_reset` nas duas metades). É o comportamento documentado pelo ZMK. Em geral, escolha um dos dois caminhos para as teclas: o Studio ou o `.keymap`.
 >
 > Isso vale para as teclas e camadas. Os efeitos, as condições e os overlays de luz, o `corne.conf` e os `.overlay` são compilados no firmware e continuam valendo normalmente a cada gravação. A consequência prática: se você já usa o Studio, um efeito novo adicionado ao `.keymap` precisa ser atribuído a uma tecla pelo próprio Studio.
+
+#### Ícones nas teclas (fork do app)
+
+O app oficial desenha cada tecla como o nome do comportamento e, embaixo, o primeiro parâmetro como se fosse uma tecla do teclado. Isso serve para teclas comuns, mas as teclas de Bluetooth, de luzes e de camadas ficam vazias ou com um rótulo sem sentido. O fork não oficial [`lenerdz/zmk-studio`](https://github.com/lenerdz/zmk-studio) (com [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md)), publicado em <https://lenerdz.github.io/zmk-studio/>, desenha um ícone e um rótulo curto nessas teclas. Passar o mouse sobre uma tecla mostra a descrição completa, como `Bluetooth: Select Profile 2`.
+
+| Tecla deste projeto | O que o fork desenha |
+|---|---|
+| `&mo` (camadas), por exemplo `&mo 1` | ícone de camadas e o nome da camada (`FN1`) |
+| `&bt BT_SEL 0` a `&bt BT_SEL 4` | ícone de Bluetooth e o número do perfil |
+| `&bt BT_CLR` | ícone de Bluetooth com uma borracha e `clear` |
+| `&kprgb RGB_*` | cabeçalho `RGB`, um ícone e uma palavra curta: `on/off`, `hue`, `sat`, `bri`, `time`, `effect`, `reset`, com `+` ou `-` para subir e descer |
+| `&fx_*` | cabeçalho `Effect`, um ícone para cada efeito e o nome (`solid`, `breathe`, ...) |
+| `&studio_unlock`, `&caps_word`, `&trans` | cadeado aberto, seta do Caps Word e seta dupla esmaecida |
+| Teclas de mídia (`C_MUTE`, `C_VOL_UP`, `C_BRI_UP`, ...) | ícones, no lugar dos emojis do app oficial |
+
+O fork não altera o protocolo nem o que é gravado no teclado: a edição, o salvamento e o "Restore Stock Settings" seguem o mesmo caminho do app oficial. Ele só muda o desenho das teclas e a hospedagem do app. Veja [Por que existem os forks](#por-que-existem-os-forks).
+
+**Não testado neste teclado.** Foi verificado nas stories do Storybook do fork, com as seis camadas deste `corne.keymap`; os nomes dos comportamentos usados nelas vêm do código-fonte do ZMK e do zmk-rgb-matrix. O app só mostra o que o firmware informa: se uma tecla aparecer vazia ou com um rótulo estranho, passe o mouse sobre ela para ver o nome do comportamento.
 
 ## Luzes (RGB por tecla e underglow)
 
@@ -770,6 +789,8 @@ O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth
 
 As pontas das branches `corne-fixes` (`f740a9b`) e `zmk-main` (`ae83011`) têm um commit a mais, só de documentação (`README.pt-BR.md`). Os pins não foram movidos para esses commits para que o firmware compilado continue idêntico.
 
+O app web ZMK Studio do fork `lenerdz/zmk-studio` não aparece no `west.yml`: ele não faz parte do firmware. Veja [Por que existem os forks](#por-que-existem-os-forks).
+
 ### Por que existem os forks
 
 **zmk-rgb-matrix** (fork `lenerdz/zmk-rgb-matrix`, branch `corne-fixes`): o upstream tinha dois problemas neste projeto, e cada correção tem a própria branch para poder ser enviada ao autor:
@@ -780,6 +801,8 @@ As pontas das branches `corne-fixes` (`f740a9b`) e `zmk-main` (`ae83011`) têm u
 A branch `corne-fixes` reúne as duas correções. O módulo ainda ignora a rotação das teclas de polegar (diferença pequena nas coordenadas).
 
 **zmk-nice-oled** (fork `lenerdz/zmk-nice-oled`, branch `zmk-main`): a `main` do upstream (`mctechnology17/zmk-nice-oled`) mira o ZMK 0.3 e o LVGL 8. O [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37), de tokyo2006, migra o módulo para o ZMK `main` (Zephyr 4.1 e LVGL 9). A branch `zmk-main` do fork é esse PR mais uma correção: no ZMK `main`, a função que escolhe a saída devolve `ZMK_TRANSPORT_NONE` enquanto o USB não está pronto e o perfil Bluetooth ativo não está conectado, e o widget deixava o ícone de saída em branco nesse estado. Agora ele desenha o ícone de perfil sem pareamento ou sem sinal.
+
+**zmk-studio** (fork `lenerdz/zmk-studio`, branch `main`): é o app web do ZMK Studio, e não faz parte do firmware nem do `west.yml`. O fork parte de `zmkfirmware/zmk-studio` no commit `1bb6bb8` e muda só o desenho das teclas (ícones e rótulos para Bluetooth, luzes, camadas e teclas de mídia), os avisos de "fork não oficial" e a hospedagem no GitHub Pages (workflow `pages.yml`), em <https://lenerdz.github.io/zmk-studio/>. A ponta da `main` do fork é `9ad4ba4`. Os workflows `release-please` e `tauri-build` do upstream estão desativados nas configurações do fork. Veja o [README](https://github.com/lenerdz/zmk-studio/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md) do fork.
 
 ### Atualizar uma versão ou voltar ao upstream
 
@@ -827,6 +850,7 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 | `config/west.yml` ou `.github/workflows/build.yml` | [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | `build.yaml` | [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) |
 | Arquivo criado, movido ou removido | [Estrutura do repositório](#estrutura-do-repositório) |
+| Fork do app ZMK Studio (`lenerdz/zmk-studio`): ícones, hospedagem ou commit | [ZMK Studio](#zmk-studio) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | Problema encontrado ou resolvido | [Solução de problemas](#solução-de-problemas) |
 
 ## Referências
@@ -834,4 +858,5 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 - ZMK: [documentação](https://zmk.dev/docs), [ZMK Studio](https://zmk.dev/docs/features/studio) e [Caps Word](https://zmk.dev/docs/keymaps/behaviors/caps-word).
 - zmk-rgb-matrix: [upstream](https://github.com/gudzpoz/zmk-rgb-matrix) e [documentação](https://gudzpoz.github.io/zmk-rgb-matrix/); [fork](https://github.com/lenerdz/zmk-rgb-matrix) e seu [README em português](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md).
 - zmk-nice-oled: [upstream](https://github.com/mctechnology17/zmk-nice-oled), [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37); [fork](https://github.com/lenerdz/zmk-nice-oled) e seu [README em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md).
+- zmk-studio: [upstream](https://github.com/zmkfirmware/zmk-studio); [fork](https://github.com/lenerdz/zmk-studio), seu [README em português](https://github.com/lenerdz/zmk-studio/blob/main/README.pt-BR.md) e o [app publicado](https://lenerdz.github.io/zmk-studio/).
 - Este repositório: [lenerdz/corne-zmk](https://github.com/lenerdz/corne-zmk).

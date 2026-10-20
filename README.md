@@ -53,6 +53,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
     - [Opções das duas telas](#opções-das-duas-telas)
     - [Tela esquerda (central)](#tela-esquerda-central)
     - [Tela direita (periférica)](#tela-direita-periférica)
+    - [Aviso das luzes (toast)](#aviso-das-luzes-toast)
 - [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware)
   - [Compilar](#compilar)
   - [Baixar os arquivos de gravação](#baixar-os-arquivos-de-gravação)
@@ -83,7 +84,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 - **7 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS, MEDIA e STENO. Veja [Camadas](#camadas).
 - **Modo de estenotipia**: a camada STENO troca o QWERTY pelas teclas que o [Plover](https://github.com/openstenoproject/plover) lê como uma máquina de estenotipia, e dois macros (`&steno_on` e `&steno_off`) trocam de camada e ligam ou suspendem o Plover (não testado neste teclado). Veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover).
 - **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada) e indicador de Caps Lock. As cores de cada mapa podem ser **editadas e salvas no teclado**, sem recompilar, pela aba **Lights** do fork do app do ZMK Studio (funcionou no teclado, segundo o dono). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
-- **Telas OLED verticais** (nice!oled), com uma configuração para cada metade: a esquerda mostra a saída (USB ou Bluetooth), a bateria das duas metades (não testado neste teclado), o perfil Bluetooth, a velocidade de digitação e a camada ativa; a direita mostra a animação do gato, a bateria e a conexão. As telas nunca apagam. Veja [Telas OLED](#telas-oled).
+- **Telas OLED verticais** (nice!oled), com uma configuração para cada metade: a esquerda mostra a saída (USB ou Bluetooth), a bateria das duas metades (não testado neste teclado), o perfil Bluetooth, a velocidade de digitação e a camada ativa; a direita mostra a animação do gato, a bateria e a conexão e, por um instante a cada mudança nas luzes (efeito, brilho, cor), um aviso com o que mudou (não testado neste teclado). As telas nunca apagam. Veja [Telas OLED](#telas-oled).
 - **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes, camadas e do modo de estenotipia, deixa **arrastar uma tecla sobre outra** para trocá-las e tem a aba **Lights** para editar as cores das luzes. Veja [ZMK Studio](#zmk-studio).
 - **Bluetooth com 5 perfis**, **NKRO** e **Caps Word**. Veja [Funções e recursos](#funções-e-recursos).
 - **Build automático** pelo GitHub Actions, com versões fixadas do ZMK e dos módulos para que o resultado seja reproduzível. Veja [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas).
@@ -99,7 +100,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 │   ├── corne.keymap              teclas, camadas, macros do modo de estenotipia e toda a configuração das luzes (efeitos, condições, overlays)
 │   ├── corne.conf                opções Kconfig das duas metades: parte comum das telas, Bluetooth, NKRO, energia, luzes
 │   ├── corne_left.conf           opções Kconfig só da metade esquerda: buffer de recepção do ZMK Studio e a tela esquerda
-│   ├── corne_right.conf          opções Kconfig só da metade direita: a tela direita
+│   ├── corne_right.conf          opções Kconfig só da metade direita: a tela direita (animação e aviso das luzes)
 │   ├── corne_left.overlay        mapa dos LEDs da metade esquerda e os slots de cor dela (slot-count, no-key-slots)
 │   ├── corne_right.overlay       mapa dos LEDs da metade direita e os slots de cor dela (slot-count, no-key-slots)
 │   ├── led_colors.dtsi           cores padrão de cada slot em cada camada (incluído no fim do corne.keymap)
@@ -111,7 +112,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 
 - Os shields `corne_left` e `corne_right` vêm do próprio ZMK. Este repositório só acrescenta o keymap, as opções, os mapas de LED e de slots de cor, as cores padrão de cada slot em cada camada e a lista de módulos.
 - `config/led_colors.dtsi` é o arquivo a editar para mudar as cores padrão de cada LED em cada camada. O `config/corne.keymap` o inclui no final. As cores são indexadas por slot e valem para as duas metades. Veja [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
-- `config/corne_left.conf` e `config/corne_right.conf` valem só para o build da metade correspondente: o ZMK aplica o `config/<shield>.conf` de cada shield do build, e o `corne.conf` vale para as duas metades. O da esquerda define o buffer de recepção do ZMK Studio (veja [ZMK Studio](#zmk-studio)) e os widgets da tela esquerda; o da direita define a animação da tela direita (veja [Telas OLED](#telas-oled)).
+- `config/corne_left.conf` e `config/corne_right.conf` valem só para o build da metade correspondente: o ZMK aplica o `config/<shield>.conf` de cada shield do build, e o `corne.conf` vale para as duas metades. O da esquerda define o buffer de recepção do ZMK Studio (veja [ZMK Studio](#zmk-studio)) e os widgets da tela esquerda; o da direita define a animação da tela direita e o aviso das luzes (veja [Telas OLED](#telas-oled)).
 - `config/rgb.dtsi` é resto da configuração antiga de underglow (macros de cor e anotações do mapa de LEDs da época). Nenhum arquivo o inclui, então ele não afeta o firmware. O mapa de LEDs vigente está nos arquivos `.overlay` e na seção [Mapa dos LEDs](#mapa-dos-leds).
 - [`SUGESTOES.md`](SUGESTOES.md) reúne ideias de melhoria do layout (acesso a NAV, home row mods, combos etc.).
 
@@ -436,8 +437,8 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 13 | A | `&kprgb RGB_EFF` | próximo efeito |
 | 14 | S | `&kprgb RGB_HUI` | gira a cor do efeito atual para a frente (matiz +) |
 | 15 | D | `&kprgb RGB_HUD` | gira a cor do efeito atual para trás (matiz -) |
-| 16 | F | `&kprgb RGB_BRI` | aumenta o brilho (até `max-brightness`) |
-| 17 | G | `&kprgb RGB_BRD` | diminui o brilho |
+| 16 | F | `&kprgb RGB_BRI` | aumenta o brilho em 10 pontos (`CONFIG_KEYPAW_RGB_MATRIX_BRT_STEP`) numa escala de 0 a 100, em que 100 equivale a `max-brightness` |
+| 17 | G | `&kprgb RGB_BRD` | diminui o brilho em 10 pontos |
 | 18 | H | `&kprgb RGB_EFR` | efeito anterior |
 | 19 | J | `&kprgb RGB_SAI` | aumenta a saturação |
 | 20 | K | `&kprgb RGB_SAD` | diminui a saturação |
@@ -450,6 +451,10 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 32 | , | `&fx_static` | escolhe o efeito `static`: o mapa de cores da camada base |
 | 33 | . | `&steno_on` | vai para a camada STENO e liga o Plover (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)) |
 | 34 | [ | `&to 6` | vai para a camada STENO, sem falar com o Plover |
+
+**Aviso na tela direita (não testado neste teclado).** Cada tecla acima que muda algo que se vê (efeito, ligar e desligar, brilho, matiz, saturação, ciclo da animação ou o reset) faz a tela direita mostrar, por 1,5 s, duas linhas embaixo do gato: por exemplo `EFEITO 4` e `RAINBOW`, `BRILHO` e `70%`, `LUZES` e `APAGADAS`. O aviso vem do evento `zmk_rgb_matrix_changed` do módulo de luzes, que é disparado nas duas metades, e vale para as teclas das duas metades. Comando que não muda nada (o mesmo efeito de novo, o brilho já no limite) não avisa nada, e o aviso não aparece ao ligar o teclado, ao conectar a metade direita nem quando as cores são editadas pelo ZMK Studio. Os textos e as opções estão em [Aviso das luzes (toast)](#aviso-das-luzes-toast).
+
+**O número do brilho.** O brilho que as teclas `RGB_BRI` e `RGB_BRD` mudam e o aviso mostra é o do controlador, de 0 a 100, em passos de 10 (`CONFIG_KEYPAW_RGB_MATRIX_BRT_STEP`). O valor 100 corresponde a `max-brightness` (50 aqui) e o brilho real dos LEDs é `max-brightness` vezes esse valor. Pela leitura do código do módulo, antes do commit `123f7ac` do fork essas duas teclas não mudavam nada (veja [Solução de problemas](#solução-de-problemas)); a correção não foi testada neste teclado.
 
 ### Efeitos instalados
 
@@ -1021,7 +1026,7 @@ As telas usam o módulo [zmk-nice-oled](https://github.com/lenerdz/zmk-nice-oled
 ### O que cada tela mostra
 
 - **Metade esquerda (central)**: saída ativa (USB ou Bluetooth, com ícone próprio para perfil sem pareamento e sem conexão), a bateria das duas metades (como dois números no lugar do ícone, sem o indicador de carga por USB; não testado neste teclado, veja [Tela esquerda (central)](#tela-esquerda-central)), perfil Bluetooth ativo, velocidade de digitação (velocímetro, número e gráfico) e o nome da camada ativa (o `display-name` de cada camada no keymap: QWERTY, FN1, RAISE, NAV, SYS, MEDIA e STENO).
-- **Metade direita (periférica)**: animação do gato, porcentagem de bateria e o estado da conexão Bluetooth com a metade esquerda.
+- **Metade direita (periférica)**: animação do gato, porcentagem de bateria e o estado da conexão Bluetooth com a metade esquerda. Por 1,5 s depois de cada mudança nas luzes, duas linhas embaixo do gato dizem o que mudou (veja [Aviso das luzes (toast)](#aviso-das-luzes-toast); não testado neste teclado).
 
 As telas **nunca apagam** (`CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n`), nem no USB nem na bateria.
 
@@ -1070,6 +1075,9 @@ Em `config/corne_right.conf`:
 | `CONFIG_NICE_OLED_WIDGET_ANIMATION_PERIPHERAL` | `y` | liga a animação da tela direita |
 | `CONFIG_NICE_OLED_WIDGET_ANIMATION_PERIPHERAL_CAT` | `y` | a animação é o gato (o padrão do módulo) |
 | `CONFIG_NICE_OLED_WIDGET_ANIMATION_PERIPHERAL_WPM` | `n` | o WPM na metade periférica exige um módulo extra (zmk-wpm-peripheral) |
+| `CONFIG_NICE_OLED_WIDGET_LED_TOAST` | `y` | liga o aviso das luzes (veja [Aviso das luzes (toast)](#aviso-das-luzes-toast)) |
+| `CONFIG_NICE_OLED_WIDGET_LED_TOAST_LANGUAGE_PT_BR` | `y` | os textos do aviso em português (o padrão do widget é o inglês, `..._LANGUAGE_EN`) |
+| `CONFIG_NICE_OLED_WIDGET_LED_TOAST_MS` | `1500` | por quanto tempo o aviso fica na tela, em milissegundos (200 a 10000) |
 
 As alternativas estão comentadas no próprio `corne_right.conf`: outra animação (`CONFIG_NICE_OLED_WIDGET_ANIMATION_PERIPHERAL_GEM`, `_HEAD`, `_POKEMON` ou `_SPACEMAN`: desligue o gato e ligue uma delas) ou uma imagem parada, que gasta menos bateria (`CONFIG_NICE_OLED_WIDGET_ANIMATION_PERIPHERAL=n` e `CONFIG_NICE_OLED_WIDGET_STATIC_IMAGE_PERIPHERAL=y`, com `CONFIG_NICE_OLED_WIDGET_STATIC_IMAGE_PERIPHERAL_VIM` ou `CONFIG_NICE_OLED_WIDGET_STATIC_IMAGE_PERIPHERAL_VIP_MARCOS`). Não testado neste teclado.
 
@@ -1078,6 +1086,26 @@ As alternativas estão comentadas no próprio `corne_right.conf`: outra animaç�
 Todas as opções `CONFIG_NICE_OLED_*`, com padrões e descrições, estão no [README do fork em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md).
 
 Antes de as opções da central irem para o `corne_left.conf`, elas ficavam no `corne.conf`, valiam para as duas metades e o build da direita mostrava avisos do Kconfig sobre os widgets de WPM do `nice_oled`. Agora o build da direita não as define: o log do GitHub Actions desta mudança não tem mais esses avisos (o `.config` das duas metades também confirma as opções de cada arquivo).
+
+#### Aviso das luzes (toast)
+
+**Não testado neste teclado.** O código compila no GitHub Actions e a formatação dos textos foi conferida no computador, mas o aviso nunca foi visto numa tela de verdade. A posição foi calculada a partir da geometria da tela (veja abaixo) e pode precisar de ajuste.
+
+Com `CONFIG_NICE_OLED_WIDGET_LED_TOAST=y` (só existe no build da metade periférica, a direita), a tela mostra, por `CONFIG_NICE_OLED_WIDGET_LED_TOAST_MS` depois de uma mudança nas luzes, duas linhas de até 8 caracteres na faixa livre embaixo da animação do gato. Uma mudança nova substitui a que está na tela e reinicia a contagem. Com `CONFIG_NICE_OLED_WIDGET_LED_TOAST_LANGUAGE_PT_BR=y` os textos são:
+
+| O que mudou | Primeira linha | Segunda linha |
+|---|---|---|
+| Efeito | `EFEITO 4` (ou `EFX 12` a partir do décimo) | o nome do efeito em maiúsculas, cortado em 8 letras: `RAINBOW`, `STARLIGH` |
+| Ligar ou apagar | `LUZES` | `LIGADAS` ou `APAGADAS` |
+| Brilho | `BRILHO` | `70%` (a escala de 0 a 100 de [Controles no dia a dia](#controles-no-dia-a-dia)) |
+| Matiz | `MATIZ` | `210 deg` |
+| Saturação | `SATUR.` | `100%` |
+| Ciclo da animação | `CICLO` | `3000 ms` |
+| Reset | `LUZES` | `RESET` |
+
+O número do efeito é a posição na tabela de [Efeitos instalados](#efeitos-instalados) mais um (`fx_solid` é o `EFEITO 1`). O aviso vem do evento `zmk_rgb_matrix_changed` do módulo zmk-rgb-matrix (opção `CONFIG_KEYPAW_RGB_MATRIX_CHANGE_EVENT`, ligada por padrão), disparado nas duas metades: por isso uma tecla de luz apertada em qualquer uma das metades faz o aviso aparecer na tela direita. Ele não aparece ao ligar o teclado, ao conectar a metade direita nem quando as cores são editadas pelo ZMK Studio.
+
+**Geometria.** O canvas do widget tem 68 de largura por 160 de altura; no OLED de 128x32 só aparece a parte de x de 0 a 31 e y de 32 a 159 (a tela é girada). A animação do gato ocupa de y 73 a 141, e o aviso fica na faixa de y 142 a 159: a primeira linha em `CONFIG_NICE_OLED_WIDGET_LED_TOAST_CUSTOM_X`/`_Y` (padrão 0 e 143) e a segunda 8 pixels abaixo. Se você trocar a animação, ajuste essas duas opções. Texto, opções e posição estão no [README do fork em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md#toast-de-rgb-periférico).
 
 ## Compilar e gravar o firmware
 
@@ -1132,25 +1160,26 @@ O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth
 | Componente | Origem | Revisão fixada | Observação |
 |---|---|---|---|
 | ZMK | `zmkfirmware/zmk`, branch `main` | `4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85` (2026-10-09) | Zephyr 4.1. O mesmo commit é usado no `ref` de `.github/workflows/build.yml` |
-| zmk-rgb-matrix | `lenerdz/zmk-rgb-matrix`, branch `corne-fixes` | `c4bf112fe47bc5c93da310acfd6c2c92dbbe6874` | upstream `gudzpoz/zmk-rgb-matrix` em `a9add03` (2026-10-08) mais duas correções e os mapas de cor editáveis |
-| zmk-nice-oled | `lenerdz/zmk-nice-oled`, branch `zmk-main` | `479a516e01c942df79567475e424de4d1560e28c` | PR #37 do upstream (`de5b2af`) mais a correção do transporte `NONE` |
+| zmk-rgb-matrix | `lenerdz/zmk-rgb-matrix`, branch `corne-fixes` | `123f7ac1e81c877cbea420373217be35e826f33e` | upstream `gudzpoz/zmk-rgb-matrix` em `a9add03` (2026-10-08) mais duas correções, os mapas de cor editáveis, o evento de mudança e a correção das teclas de brilho |
+| zmk-nice-oled | `lenerdz/zmk-nice-oled`, branch `zmk-main` | `c13dbdd830a034fe3554a5edd3ca6d57bf5333b4` | PR #37 do upstream (`de5b2af`) mais a correção do transporte `NONE` e o aviso das luzes na tela da periférica |
 | zmk-studio-messages | `lenerdz/zmk-studio-messages`, branch `main` | `cfcce43b2156151fcd09902de1f4887be387b905` | `zmkfirmware/zmk-studio-messages` em `6cb4c28` (o commit que o ZMK fixa) mais as requisições dos mapas de cor. Substitui o módulo de mesmo nome que o ZMK importa |
 
-A ponta da branch `zmk-main` (`ae83011`) tem um commit a mais, só de documentação (`README.pt-BR.md`); o pin não foi movido para ele para que o firmware compilado continue idêntico. A ponta da `corne-fixes` (`c4bf112`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins.
+A ponta da `corne-fixes` (`123f7ac`), a da `zmk-main` (`c13dbdd`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins.
 
 O app web ZMK Studio do fork `lenerdz/zmk-studio` não aparece no `west.yml`: ele não faz parte do firmware. Veja [Por que existem os forks](#por-que-existem-os-forks).
 
 ### Por que existem os forks
 
-**zmk-rgb-matrix** (fork `lenerdz/zmk-rgb-matrix`, branch `corne-fixes`): o fork tem duas correções de problemas do upstream, cada uma com a própria branch para poder ser enviada ao autor, e um recurso novo:
+**zmk-rgb-matrix** (fork `lenerdz/zmk-rgb-matrix`, branch `corne-fixes`): o fork tem duas correções de problemas do upstream, cada uma com a própria branch para poder ser enviada ao autor, e dois recursos novos (os mapas de cor editáveis e o evento de mudança), com uma correção que só existe na `corne-fixes`:
 
 1. `fix/behavior-metadata-sets-type` (`98070e1`): o tipo do vetor `sets[]` em `behavior_rgb_matrix.c` causava erro de compilação quando o ZMK Studio está ligado (o build da metade esquerda).
 2. `fix/physical-layout-lookup` (`2c1ecbe`): `kp_rgb_matrix_layout_init()` usava o primeiro layout físico da lista (o do Corne de 5 colunas, com 36 teclas) em vez do layout indicado em `physical-layout` (6 colunas, 42 teclas). Com isso, as teclas de polegar (posições 36 a 41) eram ignoradas pelos efeitos que dependem de posição e as outras teclas recebiam coordenadas erradas.
 3. Mapas de cor editáveis (`6ebecb4`, mais `cfc69e4`, que faz a compilação falhar se o buffer de recepção do ZMK Studio for menor que 256 bytes; só na `corne-fixes`, não foi proposto ao upstream): slots de cor iguais nas duas metades, mapas que podem ser editados e salvos na memória da central, sincronização da metade direita e as requisições do ZMK Studio. O commit seguinte (`c4bf112`) só acrescenta a documentação (`README.md` e `README.pt-BR.md`). Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
+4. Evento de mudança e correção do brilho (`123f7ac`, só na `corne-fixes`): o evento `zmk_rgb_matrix_changed` (opção `CONFIG_KEYPAW_RGB_MATRIX_CHANGE_EVENT`) avisa, nas duas metades, o que um comando de luz do usuário mudou; a tela direita o usa para o [aviso das luzes](#aviso-das-luzes-toast). O mesmo commit corrige as teclas de brilho: a central converte `RGB_BRI` e `RGB_BRD` em `RGB_COLOR_HSB_CMD`, mas o tratamento desse comando só aplicava matiz e saturação, então o brilho do controlador nunca mudava, e a sincronização com a metade direita sempre enviava 100. Agora o comando aplica o brilho que carrega e a sincronização envia o brilho do controlador. O texto da seção "Change event" está no [README do fork](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.md#change-event) e no [em português](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md#evento-de-mudança).
 
-A branch `corne-fixes` reúne as duas correções e o recurso novo. O módulo ainda ignora a rotação das teclas de polegar (diferença pequena nas coordenadas).
+A branch `corne-fixes` reúne as duas correções e os recursos novos. O módulo ainda ignora a rotação das teclas de polegar (diferença pequena nas coordenadas).
 
-**zmk-nice-oled** (fork `lenerdz/zmk-nice-oled`, branch `zmk-main`): a `main` do upstream (`mctechnology17/zmk-nice-oled`) mira o ZMK 0.3 e o LVGL 8. O [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37), de tokyo2006, migra o módulo para o ZMK `main` (Zephyr 4.1 e LVGL 9). A branch `zmk-main` do fork é esse PR mais uma correção: no ZMK `main`, a função que escolhe a saída devolve `ZMK_TRANSPORT_NONE` enquanto o USB não está pronto e o perfil Bluetooth ativo não está conectado, e o widget deixava o ícone de saída em branco nesse estado. Agora ele desenha o ícone de perfil sem pareamento ou sem sinal.
+**zmk-nice-oled** (fork `lenerdz/zmk-nice-oled`, branch `zmk-main`): a `main` do upstream (`mctechnology17/zmk-nice-oled`) mira o ZMK 0.3 e o LVGL 8. O [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37), de tokyo2006, migra o módulo para o ZMK `main` (Zephyr 4.1 e LVGL 9). A branch `zmk-main` do fork é esse PR mais uma correção: no ZMK `main`, a função que escolhe a saída devolve `ZMK_TRANSPORT_NONE` enquanto o USB não está pronto e o perfil Bluetooth ativo não está conectado, e o widget deixava o ícone de saída em branco nesse estado. Agora ele desenha o ícone de perfil sem pareamento ou sem sinal. A branch tem ainda um recurso novo, o **aviso das luzes** (`CONFIG_NICE_OLED_WIDGET_LED_TOAST`, commit `c13dbdd`): na tela da periférica, mostra por um instante o que um comando de luz mudou, escutando o evento do zmk-rgb-matrix (veja [Aviso das luzes (toast)](#aviso-das-luzes-toast)).
 
 **zmk-studio-messages** (fork `lenerdz/zmk-studio-messages`, branch `main`): o ZMK traz o protocolo do ZMK Studio como o módulo `zmk-studio-messages`, importado de `app/west.yml`, e o `config/west.yml` o substitui, com o mesmo nome e caminho, pelo fork. O fork parte do commit `6cb4c28`, o mesmo que o ZMK fixa, e acrescenta ao subsistema `keymap` as requisições e a notificação dos mapas de cor, com identificadores a partir de 100 para não colidir com os do upstream. O ZMK compila o protocolo junto com o firmware, então o módulo zmk-rgb-matrix usa as mensagens novas direto; o fork do app web traz um cliente TypeScript gerado a partir do mesmo protocolo (`src/vendor/zmk-studio-ts-client`) e é por ele que usa as mensagens novas. Veja o [README](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.md) e o [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md) do fork.
 
@@ -1183,6 +1212,8 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | Troquei efeitos ou overlays e o comportamento ficou estranho (efeito errado, luzes que não ligam) | Grave as duas metades e aperte `RGB_RESET` (camada SYS, posição 23). Confira se as duas metades receberam o mesmo firmware |
 | As luzes apagam sozinhas | É o padrão do módulo (apagam após 30 s sem digitar). Veja [Manter as luzes acesas quando o teclado fica ocioso](#manter-as-luzes-acesas-quando-o-teclado-fica-ocioso) |
 | As teclas de polegar não reagem aos efeitos reativos | Corrigido no fork `corne-fixes`. Se voltar a acontecer, confira se `config/west.yml` aponta para o fork e não para o upstream |
+| As teclas de brilho (camada SYS, posições 16 e 17) não mudam o brilho | Pela leitura do código, era um defeito do módulo: `RGB_COLOR_HSB_CMD`, em que a central converte `RGB_BRI` e `RGB_BRD`, só aplicava matiz e saturação. Corrigido no fork `corne-fixes` a partir do commit `123f7ac`: confira o pin em `config/west.yml` e grave as duas metades. **Não testado neste teclado** |
+| O aviso das luzes não aparece na tela direita | O aviso só existe no build da metade direita: grave o firmware novo nela e confira se `config/corne_right.conf` tem `CONFIG_NICE_OLED_WIDGET_LED_TOAST=y`. Ele só aparece quando o comando muda algo (o mesmo efeito de novo, ou o brilho já no limite, não avisa). Se o texto aparecer cortado ou sobre o gato, ajuste `CONFIG_NICE_OLED_WIDGET_LED_TOAST_CUSTOM_Y` (padrão 143). **Não testado neste teclado** |
 | O ícone de saída da tela esquerda fica em branco com o teclado desconectado | Corrigido na branch `zmk-main` do fork do zmk-nice-oled (commit `479a516` ou posterior). Confira o pin em `config/west.yml` |
 | Erros de link como `multiple definition` ou `undefined reference` depois de mexer em widgets | Mantenha os widgets nativos desligados (`CONFIG_ZMK_WIDGET_*_STATUS=n`) e use apenas o fork `zmk-main` do zmk-nice-oled: a `main` do upstream não é compatível com o ZMK `main` |
 | A metade periférica trava ao ligar a tela | Não reduza `CONFIG_ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE` abaixo de `4096` |

@@ -19,23 +19,27 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit c4bf112) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit 123f7ac) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
       # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
       # (slots de cor, registros na flash, sync da metade direita e requisicoes do ZMK Studio;
       # o build da esquerda exige CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256, que esta em
-      # config/corne_left.conf).
-      # Voltar para o upstream (remote gudzpoz) so se ele incorporar os tres.
-      revision: c4bf112fe47bc5c93da310acfd6c2c92dbbe6874
+      # config/corne_left.conf) + o evento zmk_rgb_matrix_changed (que a tela direita usa
+      # para avisar as mudancas nas luzes) e a correcao das teclas de brilho (RGB_BRI e
+      # RGB_BRD nao mudavam nada: o comando RGB_COLOR_HSB_CMD ignorava o brilho).
+      # Voltar para o upstream (remote gudzpoz) so se ele incorporar tudo isso.
+      revision: 123f7ac1e81c877cbea420373217be35e826f33e
     - name: zmk-nice-oled
       remote: lenerdz
-      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 479a516) =
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit c13dbdd) =
       # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
       # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
-      # icone de saida fica em branco enquanto o teclado esta desconectado).
+      # icone de saida fica em branco enquanto o teclado esta desconectado) + o aviso das
+      # luzes na tela da periferica (CONFIG_NICE_OLED_WIDGET_LED_TOAST, que escuta o evento do
+      # zmk-rgb-matrix acima).
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: 479a516e01c942df79567475e424de4d1560e28c
+      revision: c13dbdd830a034fe3554a5edd3ca6d57bf5333b4
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao

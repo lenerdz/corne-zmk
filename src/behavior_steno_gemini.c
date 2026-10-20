@@ -65,7 +65,7 @@ static void stn_send(const uint8_t chord[STN_PACKET_LEN]) {
         return;
     }
 
-#if IS_ENABLED(CONFIG_UART_LINE_CTRL)
+#if IS_ENABLED(CONFIG_ZMK_STENO_GEMINI_REQUIRE_DTR)
     /*
      * DTR is high only while the host has the port open. Without this check the
      * packets would pile up in the USB buffer while nobody listens and reach

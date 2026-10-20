@@ -12,3 +12,18 @@ config ZMK_STENO_GEMINI
 	  to the computer has it; on the other half the behavior builds but does
 	  nothing, because behaviors with central locality only run on the central).
 	  Plover reads the packets with its "Gemini PR" machine.
+
+config ZMK_STENO_GEMINI_REQUIRE_DTR
+	bool "Send chords only while the host has the serial port open"
+	default y
+	depends on ZMK_STENO_GEMINI
+	select UART_LINE_CTRL
+	help
+	  The host raises the DTR line when a program (Plover) opens the serial
+	  port, and drops it when the program closes the port. With this option a
+	  chord is sent only while DTR is high; otherwise it is dropped. Without it
+	  the chords typed while nobody has the port open pile up in the USB buffer
+	  and reach Plover later, as strokes nobody typed just then.
+
+	  Turn it off (CONFIG_ZMK_STENO_GEMINI_REQUIRE_DTR=n) only to find out
+	  whether a host that never raises DTR is why no chord arrives.

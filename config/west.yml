@@ -32,14 +32,14 @@ manifest:
       revision: 123f7ac1e81c877cbea420373217be35e826f33e
     - name: zmk-nice-oled
       remote: lenerdz
-      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit c13dbdd) =
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 7c93edd) =
       # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
       # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
       # icone de saida fica em branco enquanto o teclado esta desconectado) + o aviso das
       # luzes na tela da periferica (CONFIG_NICE_OLED_WIDGET_LED_TOAST, que escuta o evento do
       # zmk-rgb-matrix acima).
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: c13dbdd830a034fe3554a5edd3ca6d57bf5333b4
+      revision: 7c93eddfebb104bd1cf71da41b6ce36df76f0971
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao

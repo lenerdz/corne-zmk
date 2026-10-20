@@ -16,7 +16,7 @@ config ZMK_STENO_GEMINI
 config ZMK_STENO_GEMINI_REQUIRE_DTR
 	bool "Send chords only while the host has the serial port open"
 	default y
-	depends on ZMK_STENO_GEMINI
+	depends on ZMK_STENO_GEMINI && SERIAL
 	select UART_LINE_CTRL
 	help
 	  The host raises the DTR line when a program (Plover) opens the serial

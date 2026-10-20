@@ -19,7 +19,7 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit 123f7ac) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit f0617b0) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
       # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
@@ -27,29 +27,38 @@ manifest:
       # o build da esquerda exige CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256, que esta em
       # config/corne_left.conf) + o evento zmk_rgb_matrix_changed (que a tela direita usa
       # para avisar as mudancas nas luzes) e a correcao das teclas de brilho (RGB_BRI e
-      # RGB_BRD nao mudavam nada: o comando RGB_COLOR_HSB_CMD ignorava o brilho).
+      # RGB_BRD nao mudavam nada: o comando RGB_COLOR_HSB_CMD ignorava o brilho) + as
+      # configuracoes das telas OLED (CONFIG_KEYPAW_DISPLAY_SETTINGS: contraste, quando
+      # apagar e aviso das luzes, editaveis pelo ZMK Studio, guardadas em cada metade e
+      # copiadas para a direita pelo mesmo sync dos mapas de cor; exige
+      # CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n). O codigo desse ultimo recurso esta no 2efbd69;
+      # o 3103ee2 e o f0617b0 so acrescentam a documentacao e os testes no computador.
       # Voltar para o upstream (remote gudzpoz) so se ele incorporar tudo isso.
-      revision: 123f7ac1e81c877cbea420373217be35e826f33e
+      revision: f0617b0dc2365e8bf3bfc7d083be14618fced718
     - name: zmk-nice-oled
       remote: lenerdz
-      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 7c93edd) =
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 70f757f) =
       # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
       # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
       # icone de saida fica em branco enquanto o teclado esta desconectado) + o aviso das
       # luzes na tela da periferica (CONFIG_NICE_OLED_WIDGET_LED_TOAST, que escuta o evento do
-      # zmk-rgb-matrix acima).
+      # zmk-rgb-matrix acima) + a leitura das configuracoes 5 e 6 do zmk-rgb-matrix (aviso
+      # ligado ou desligado e quanto tempo fica na tela, editaveis pelo ZMK Studio) quando
+      # CONFIG_KEYPAW_DISPLAY_SETTINGS=y.
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: 7c93eddfebb104bd1cf71da41b6ce36df76f0971
+      revision: 70f757f7766c3c4b1004a42acebbeb4fcb4d5013
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao
     # subsistema keymap as requisicoes dos mapas de cor (get_led_info, get_led_map,
     # set_led_colors, save_led_changes, discard_led_changes, restore_led_defaults)
-    # e a notificacao unsaved_led_changes_status_changed. Sem ele o modulo
-    # zmk-rgb-matrix nao compila com o ZMK Studio ligado.
+    # e a notificacao unsaved_led_changes_status_changed, e o caee958, que acrescenta as
+    # requisicoes das configuracoes das telas (get_display_info, set_display_setting,
+    # restore_display_defaults) e sobe de 8 para 15 o limite de mapas de cor em
+    # get_led_info. Sem ele o modulo zmk-rgb-matrix nao compila com o ZMK Studio ligado.
     - name: zmk-studio-messages
       remote: lenerdz
-      revision: cfcce43b2156151fcd09902de1f4887be387b905
+      revision: caee958c434f40143eda7195c1ca0939bf905e8b
       path: modules/msgs/zmk-studio-messages
   self:
     path: config

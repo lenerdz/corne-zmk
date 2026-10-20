@@ -172,14 +172,14 @@
         /* esquerda */
         (RED, BLU, BLU, BLU, BLU, BLU, /* BT_CLR BT0 BT1 BT2 BT3 BT4 */
          WHT, PNK, ORG, ORG, YEL, YEL, /* RGB_TOG RGB_EFF RGB_HUI RGB_HUD RGB_BRI RGB_BRD */
-         MAG, MAG, CYN, OFF, OFF, OFF, /* STUDIO -- -- -- -- -- */
+         MAG, MAG, TEA, TEA, TEA, TEA, /* STUDIO -- ug_rain ug_brth ug_spec ug_star */
                         PUR, ORG, WHT, /* LGUI -- SPACE (polegares) */
          MAG, MAG, MAG, MAG, MAG, MAG)/* underglow */,
 
         /* direita */
         (PNK, PNK, PNK, PNK, PNK, PNK, /* solid breathe spectrum rainbow reactive ripple */
          PNK, LIM, LIM, CYN, CYN, RED, /* RGB_EFR RGB_SAI RGB_SAD RGB_SPI RGB_SPD RGB_RESET */
-         PNK, PNK, PNK, PUR, WHT, OFF, /* heatmap starlight static steno_on TO6 -- */
+         PNK, PNK, PNK, PUR, WHT, WHT, /* heatmap starlight static steno_on TO6 ug_off */
          TEA, SKY, PUR, /* RET -- RALT (polegares) */
          MAG, MAG, MAG, MAG, MAG, MAG)/* underglow */
     )>;

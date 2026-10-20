@@ -26,6 +26,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
   - [Controles no dia a dia](#controles-no-dia-a-dia)
   - [Efeitos instalados](#efeitos-instalados)
   - [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock)
+  - [Animações do underglow](#animações-do-underglow)
   - [Slots de cor](#slots-de-cor)
   - [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)
     - [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)
@@ -83,7 +84,7 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 
 - **7 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS, MEDIA e STENO. Veja [Camadas](#camadas).
 - **Modo de estenotipia**: a camada STENO troca o QWERTY pelas teclas que o [Plover](https://github.com/openstenoproject/plover) lê como uma máquina de estenotipia, e dois macros (`&steno_on` e `&steno_off`) trocam de camada e ligam ou suspendem o Plover (não testado neste teclado). Veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover).
-- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada) e indicador de Caps Lock. As cores de cada mapa podem ser **editadas e salvas no teclado**, sem recompilar, pela aba **Lights** do fork do app do ZMK Studio (funcionou no teclado, segundo o dono). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
+- **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada), indicador de Caps Lock e **animações do underglow** que cinco teclas da camada SYS ligam e desligam sem mexer no efeito das teclas (não testado neste teclado). As cores de cada mapa podem ser **editadas e salvas no teclado**, sem recompilar, pela aba **Lights** do fork do app do ZMK Studio (funcionou no teclado, segundo o dono). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
 - **Telas OLED verticais** (nice!oled), com uma configuração para cada metade: a esquerda mostra a saída (USB ou Bluetooth), a bateria das duas metades (não testado neste teclado), o perfil Bluetooth, a velocidade de digitação e a camada ativa; a direita mostra a animação do gato, a bateria e a conexão e, por um instante a cada mudança nas luzes (efeito, brilho, cor), um aviso com o que mudou (não testado neste teclado). As telas nunca apagam. Veja [Telas OLED](#telas-oled).
 - **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes, camadas e do modo de estenotipia, deixa **arrastar uma tecla sobre outra** para trocá-las e tem a aba **Lights** para editar as cores das luzes. Veja [ZMK Studio](#zmk-studio).
 - **Bluetooth com 5 perfis**, **NKRO** e **Caps Word**. Veja [Funções e recursos](#funções-e-recursos).
@@ -138,7 +139,7 @@ Esquerda                      Direita
 | 1 | FN1 | números e teclas F | segurar o polegar do meio da esquerda (posição 37) | laranja |
 | 2 | RAISE | símbolos | segurar o polegar do meio da direita (posição 40) | azul-claro |
 | 3 | NAV | setas, Home/End, PgUp/PgDn, Insert, Delete | segurar FN1 e, sem soltar, segurar a tecla da posição 24 (canto inferior esquerdo) | verde |
-| 4 | SYS | Bluetooth e controle das luzes | segurar FN1 e, sem soltar, segurar a tecla da posição 25 (a do Z) | magenta |
+| 4 | SYS | Bluetooth, controle das luzes e animações do underglow | segurar FN1 e, sem soltar, segurar a tecla da posição 25 (a do Z) | magenta |
 | 5 | MEDIA | volume, mídia, brilho do monitor, Caps Lock, Caps Word | segurar FN1 e, sem soltar, segurar a tecla da posição 26 (a do X) | ciano |
 | 6 | STENO | digitação de estenotipia no Plover (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)) | na camada SYS, tocar `&steno_on` (posição 33, que também liga o Plover) ou `&to 6` (posição 34, que só troca de camada); sair com `&steno_off` (posição 0 da STENO) ou `&to 0` (posição 12) | roxo |
 
@@ -155,7 +156,7 @@ Nas grades abaixo, cada camada aparece em duas partes (esquerda e direita), na m
 - `FN1`, `RAISE`, `NAV`, `SYS` e `MEDIA` são `&mo <camada>` (a camada fica ativa enquanto a tecla é segurada).
 - `STUDIO` é `&studio_unlock`, `BT n` é `&bt BT_SEL n` e `CAPS_WORD` é `&caps_word`.
 - `NONE` é `&none`: a tecla não faz nada e, ao contrário de `--`, **não** deixa passar a tecla da camada de baixo. `TO n` é `&to n`: vai para a camada n e desativa as outras. `STENO_ON` e `STENO_OFF` são os macros do [modo de estenotipia](#modo-de-estenotipia-plover).
-- Na camada SYS, os nomes em minúsculas (`solid` a `static`) são os efeitos diretos `&fx_<nome>` e os `RGB_*` são `&kprgb RGB_*`.
+- Na camada SYS, os nomes em minúsculas (`solid` a `static`) são os efeitos diretos `&fx_<nome>`, os `RGB_*` são `&kprgb RGB_*` e `ug_rain`, `ug_brth`, `ug_spec`, `ug_star` e `ug_off` são os interruptores das [animações do underglow](#animações-do-underglow).
 
 #### Camada 0: QWERTY
 
@@ -229,13 +230,13 @@ ENTER     --        RALT
 Esquerda
 BT_CLR    BT 0      BT 1      BT 2      BT 3      BT 4
 RGB_TOG   RGB_EFF   RGB_HUI   RGB_HUD   RGB_BRI   RGB_BRD
-STUDIO    --        --        --        --        --
+STUDIO    --        ug_rain   ug_brth   ug_spec   ug_star
                               LGUI      --        SPACE
 
 Direita
 solid     breathe   spectrum  rainbow   reactive  ripple
 RGB_EFR   RGB_SAI   RGB_SAD   RGB_SPI   RGB_SPD   RGB_RESET
-heatmap   starlight static    STENO_ON  TO 6      --
+heatmap   starlight static    STENO_ON  TO 6      ug_off
 ENTER     --        RALT
 ```
 
@@ -280,6 +281,7 @@ As letras são as do mapa padrão da máquina Keyboard do Plover: veja [Teclas d
 - **Bluetooth com 5 perfis**: `BT 0` a `BT 4` (camada SYS, posições 1 a 5) escolhem o perfil e `BT_CLR` (posição 0) apaga o pareamento do perfil ativo. Opções em `config/corne.conf`: `CONFIG_BT_MAX_CONN=5` e `CONFIG_BT_MAX_PAIRED=5`. Para parear um dispositivo novo, selecione um perfil livre (ou apague o ativo com `BT_CLR`) e adicione o teclado no computador.
 - **Caps Word** (`&caps_word`, camada MEDIA, posição 5): deixa as letras em maiúsculas até você digitar algo que não faça parte da lista de continuação. Letras e números sempre continuam. Neste projeto `continue-list = <UNDERSCORE>`, então só `_` continua além deles; qualquer outra tecla, inclusive Backspace e Delete, encerra o Caps Word. A lista padrão do ZMK é `<UNDERSCORE BACKSPACE DELETE>`: para voltar a ela, ajuste o bloco `&caps_word` no início de `config/corne.keymap`.
 - **Caps Lock**: tecla `CAPS` na camada MEDIA (posição 17). Quando o computador reporta o Caps Lock ligado, a coluna externa da metade esquerda acende em branco. O Caps Word não aciona esse indicador, porque ele não liga o Caps Lock do computador.
+- **Animações do underglow** (`&ug_rain`, `&ug_brth`, `&ug_spec`, `&ug_star` e `&ug_off`, camada SYS, posições 26 a 29 e 35): o underglow de cada metade ganha uma animação própria, independente do efeito das teclas. Veja [Animações do underglow](#animações-do-underglow).
 - **NKRO**: `CONFIG_ZMK_HID_REPORT_TYPE_NKRO=y` permite pressionar qualquer número de teclas ao mesmo tempo. A camada STENO depende dele: o acorde que liga o Plover tem 7 teclas (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)).
 - **Energia**: `CONFIG_ZMK_SLEEP=n` desliga o deep sleep e `CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n` mantém as telas sempre acesas (o ZMK não tem uma opção só para USB). Isso aumenta o consumo de bateria no uso sem fio. As luzes são tratadas à parte e apagam após 30 s sem digitar; veja [Manter as luzes acesas quando o teclado fica ocioso](#manter-as-luzes-acesas-quando-o-teclado-fica-ocioso).
 
@@ -414,14 +416,14 @@ As luzes são controladas pelo módulo [zmk-rgb-matrix](https://github.com/gudzp
 1. **Fita de LEDs**: cada metade tem 27 LEDs WS2812 em série (`&led_strip { chain-length = <27>; }` em `config/corne.keymap`). Os índices 0 a 5 são o underglow (sem tecla) e 6 a 26 são um LED sob cada tecla.
 2. **Mapa dos LEDs**: o nó `keypaw,rgb-matrix` de cada metade (em `config/corne_left.overlay` e `config/corne_right.overlay`) diz onde cada LED fica: pela posição da tecla ou, no underglow, por coordenadas. Os efeitos que dependem de posição (reativo, ondas, mapa de calor) usam essas coordenadas. O mesmo nó define os **slots de cor** (`slot-count` e `no-key-slots`): a posição da lista de cores de onde cada LED tira a sua cor (veja [Slots de cor](#slots-de-cor)).
 3. **Efeitos**: são os nós filhos do comportamento `kprgb` no keymap. Um efeito principal de cada vez pinta todos os LEDs, e as teclas da camada SYS trocam o efeito. O efeito `fx_static` é o mapa de cores da camada base.
-4. **Overlays**: pintam por cima do efeito principal, só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado). Aqui há um **mapa de cores por camada** (FN1 a STENO), que cobre todos os LEDs da metade, e um indicador de Caps Lock, que pinta só três.
+4. **Overlays**: pintam por cima do efeito principal, só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado, um interruptor ligado por tecla). Aqui há cinco **animações do underglow** (`ov_ugrain` a `ov_ugoff`), que pintam só os 6 LEDs de underglow, um **mapa de cores por camada** (FN1 a STENO), que cobre todos os LEDs da metade, e um indicador de Caps Lock, que pinta só três.
 5. **As duas metades precisam ter exatamente os mesmos efeitos, condições e overlays, na mesma ordem**, porque o módulo os identifica pela posição em que foram declarados. Por isso esses blocos ficam no `config/corne.keymap`, que é compartilhado, e não nos `.overlay` de cada metade. As cores também são as mesmas nas duas metades: o `slot-colors` de cada mapa vem de `config/led_colors.dtsi` e é indexado por slot, e cada metade pinta só os slots dos seus LEDs. O que difere entre as metades são os `.overlay` (`mapping`, `slot-count` e `no-key-slots`). Sempre grave as duas metades depois de mexer em qualquer um desses arquivos.
 
-O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_steno`, `ov_caps`. Quem é declarado depois fica por cima. Um mapa de camada cobre todos os LEDs: enquanto um deles está ativo, o efeito principal e os mapas declarados antes dele nem são desenhados (o efeito principal fica pausado e volta quando a camada é solta).
+O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_ugrain`, `ov_ugbrth`, `ov_ugspec`, `ov_ugstar`, `ov_ugoff`, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_steno`, `ov_caps`. Quem é declarado depois fica por cima. Um mapa de camada cobre todos os LEDs: enquanto um deles está ativo, o efeito principal, as animações do underglow e os mapas declarados antes dele nem são desenhados (o efeito principal fica pausado e volta quando a camada é solta).
 
 ### Controles no dia a dia
 
-Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SYS. Os comandos de luz são `&kprgb RGB_*` (valem para as duas metades) e os efeitos diretos são `&fx_<nome>`.
+Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SYS. Os comandos de luz são `&kprgb RGB_*` (valem para as duas metades), os efeitos diretos são `&fx_<nome>` e as animações do underglow são `&ug_<nome>` (veja [Animações do underglow](#animações-do-underglow)).
 
 | Posição | Tecla na base | Comando | O que faz |
 |---|---|---|---|
@@ -446,13 +448,18 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 22 | ; | `&kprgb RGB_SPD` | diminui a duração do ciclo em 100 ms: o efeito fica **mais rápido** |
 | 23 | ' | `&kprgb RGB_RESET` | apaga o estado salvo das luzes e volta aos padrões do keymap |
 | 24 | LCTRL | `&studio_unlock` | libera a edição no ZMK Studio |
+| 26 | X | `&ug_rain` | liga ou desliga a animação arco-íris do underglow |
+| 27 | C | `&ug_brth` | liga ou desliga a animação de respiração em ciano do underglow |
+| 28 | V | `&ug_spec` | liga ou desliga a animação de espectro do underglow (os 6 LEDs ciclam juntos pelas cores) |
+| 29 | B | `&ug_star` | liga ou desliga a animação de brilhos aleatórios brancos do underglow |
 | 30 | N | `&fx_heatmap` | escolhe o efeito `heatmap` |
 | 31 | M | `&fx_starlight` | escolhe o efeito `starlight` |
 | 32 | , | `&fx_static` | escolhe o efeito `static`: o mapa de cores da camada base |
 | 33 | . | `&steno_on` | vai para a camada STENO e liga o Plover (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)) |
 | 34 | [ | `&to 6` | vai para a camada STENO, sem falar com o Plover |
+| 35 | ] | `&ug_off` | liga ou desliga o underglow apagado: apaga os 6 LEDs de underglow de cada metade e vale mais que as outras animações |
 
-**Aviso na tela direita (não testado neste teclado).** Cada tecla acima que muda algo que se vê (efeito, ligar e desligar, brilho, matiz, saturação, ciclo da animação ou o reset) faz a tela direita mostrar, por 1,5 s, duas linhas embaixo do gato: por exemplo `EFEITO 4` e `RAINBOW`, `BRILHO` e `70%`, `LUZES` e `APAGADAS`. O aviso vem do evento `zmk_rgb_matrix_changed` do módulo de luzes, que é disparado nas duas metades, e vale para as teclas das duas metades. Comando que não muda nada (o mesmo efeito de novo, o brilho já no limite) não avisa nada, e o aviso não aparece ao ligar o teclado, ao conectar a metade direita nem quando as cores são editadas pelo ZMK Studio. Os textos e as opções estão em [Aviso das luzes (toast)](#aviso-das-luzes-toast).
+**Aviso na tela direita (não testado neste teclado).** Cada tecla acima que muda algo que se vê (efeito, ligar e desligar, brilho, matiz, saturação, ciclo da animação ou o reset) faz a tela direita mostrar, por 1,5 s, duas linhas embaixo do gato: por exemplo `EFEITO 4` e `RAINBOW`, `BRILHO` e `70%`, `LUZES` e `APAGADAS`. O aviso vem do evento `zmk_rgb_matrix_changed` do módulo de luzes, que é disparado nas duas metades, e vale para as teclas das duas metades. Comando que não muda nada (o mesmo efeito de novo, o brilho já no limite) não avisa nada, e o aviso não aparece ao ligar o teclado, ao conectar a metade direita nem quando as cores são editadas pelo ZMK Studio. As teclas `&ug_*` também não avisam nada: elas não passam pelo evento das luzes. Os textos e as opções estão em [Aviso das luzes (toast)](#aviso-das-luzes-toast).
 
 **O número do brilho.** O brilho que as teclas `RGB_BRI` e `RGB_BRD` mudam e o aviso mostra é o do controlador, de 0 a 100, em passos de 10 (`CONFIG_KEYPAW_RGB_MATRIX_BRT_STEP`). O valor 100 corresponde a `max-brightness` (50 aqui) e o brilho real dos LEDs é `max-brightness` vezes esse valor. Pela leitura do código do módulo, antes do commit `123f7ac` do fork essas duas teclas não mudavam nada (veja [Solução de problemas](#solução-de-problemas)); a correção não foi testada neste teclado.
 
@@ -480,10 +487,15 @@ Cada camada tem o seu mapa de cores: uma cor para cada um dos 54 slots (21 tecla
 
 **Funcionou no teclado**, segundo o dono, depois de gravar o firmware com as cores por slot. No computador, um script conferiu que as cores por slot reproduzem exatamente as da versão anterior (por LED da fita) em cada LED das duas metades (as 6 camadas daquela versão, 2 metades e 27 LEDs: o script expande o `led_colors.dtsi` antigo e o novo e compara pelo `mapping` dos `.overlay`) e que cada um dos 54 slots é pintado por exatamente um LED. A camada STENO, a sétima, veio depois dessa conferência, e as cores dela foram escritas direto por slot: **não testado neste teclado**.
 
-A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando você escolhe esse efeito (camada SYS, posição 32); com os outros efeitos a camada 0 mostra o efeito. As camadas 1 a 6 usam overlays, que aparecem com qualquer efeito. Os overlays são declarados em `rgb_overlays` no `config/corne.keymap`:
+A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando você escolhe esse efeito (camada SYS, posição 32); com os outros efeitos a camada 0 mostra o efeito. As camadas 1 a 6 usam overlays, que aparecem com qualquer efeito. Os overlays são declarados em `rgb_overlays` no `config/corne.keymap`, na ordem desta tabela, que é a ordem de pintura (o último fica por cima):
 
 | Overlay | Condição | LEDs | Cores |
 |---|---|---|---|
+| `ov_ugrain` | interruptor `&ug_rain` ligado (`cond_ugrain`) | `leds = <0 1 2 3 4 5>` (o underglow) | efeito `rainbow` próprio |
+| `ov_ugbrth` | interruptor `&ug_brth` ligado (`cond_ugbrth`) | `leds = <0 1 2 3 4 5>` | efeito `breathe` próprio, em `0x00FFFF` |
+| `ov_ugspec` | interruptor `&ug_spec` ligado (`cond_ugspec`) | `leds = <0 1 2 3 4 5>` | efeito `spectrum` próprio |
+| `ov_ugstar` | interruptor `&ug_star` ligado (`cond_ugstar`) | `leds = <0 1 2 3 4 5>` | efeito `starlight` próprio, em `0xFFFFFF` |
+| `ov_ugoff` | interruptor `&ug_off` ligado (`cond_ugoff`) | `leds = <0 1 2 3 4 5>` | efeito `solid` em `0x000000` (apagado) |
 | `ov_fn1` | camada 1 (FN1) ativa | `all-leds` | bloco `&map_fn1` |
 | `ov_raise` | camada 2 (RAISE) ativa | `all-leds` | bloco `&map_raise` |
 | `ov_nav` | camada 3 (NAV) ativa | `all-leds` | bloco `&map_nav` |
@@ -506,13 +518,13 @@ Cada mapa de camada é um overlay com `all-leds` e um efeito `static` filho; o `
 | Nome | Cor | Valor | Usada por padrão em |
 |---|---|---|---|
 | `OFF` | apagado | `0x000000` | teclas transparentes (`&trans`) e teclas sem função na camada (inclusive as `&none` da STENO) |
-| `WHT` | branco | `0xFFFFFF` | letras, SPACE, `CAPS`, `CAPS_WORD`, `C_MUTE` e `RGB_TOG`; as teclas `&to` (`TO 6` na SYS e `TO 0` na STENO) |
+| `WHT` | branco | `0xFFFFFF` | letras, SPACE, `CAPS`, `CAPS_WORD`, `C_MUTE` e `RGB_TOG`; as teclas `&to` (`TO 6` na SYS e `TO 0` na STENO) e `&ug_off` |
 | `RED` | vermelho | `0xFF0000` | BSPC, DEL, ESC, `C_PWR`, `BT_CLR`, `RGB_RESET` e `&steno_off` |
 | `ORG` | laranja | `0xFF8000` | teclas F, INS, `C_SLEEP`, `C_STOP`, `RGB_HUI` e `RGB_HUD`; camada FN1; consoantes da mão direita (`-F` a `-Z`) da STENO |
 | `YEL` | amarelo | `0xFFFF00` | números, `C_BRI_DN`, `C_BRI_UP`, `RGB_BRI` e `RGB_BRD`; as teclas `1` e `0` (barra de números) da STENO |
 | `LIM` | verde-limão | `0x80FF00` | pontuação e símbolos, HOME, END, PG_UP, PG_DN, PSCRN, SLCK, `RGB_SAI` e `RGB_SAD` |
 | `GRN` | verde | `0x00FF00` | setas, `C_PREV` e `C_NEXT`; camada NAV; as vogais (`A-`, `O-`, `-E` e `-U`) da STENO |
-| `TEA` | verde-água | `0x00FF80` | ENTER e `C_PP` |
+| `TEA` | verde-água | `0x00FF80` | ENTER e `C_PP`; as teclas das animações do underglow (`&ug_rain`, `&ug_brth`, `&ug_spec` e `&ug_star`) |
 | `CYN` | ciano | `0x00FFFF` | `C_VOL_DN`, `C_VOL_UP`, `RGB_SPI` e `RGB_SPD`; camada MEDIA; consoantes da mão esquerda (`S-` a `R-`) da STENO |
 | `SKY` | azul-claro | `0x0080FF` | colchetes, chaves e parênteses; camada RAISE |
 | `BLU` | azul | `0x0000FF` | perfis Bluetooth (`BT_SEL`); underglow da camada base |
@@ -523,6 +535,30 @@ Cada mapa de camada é um overlay com `all-leds` e um efeito `static` filho; o `
 Os nomes são macros definidas no começo do `led_colors.dtsi` (veja a receita [Mudar a cor de uma tecla ou de um LED em uma camada](#mudar-a-cor-de-uma-tecla-ou-de-um-led-em-uma-camada)).
 
 **Indicador de Caps Lock.** O overlay `ov_caps` pinta a coluna externa da metade esquerda (`keys = <0 12 24>`: TAB, LSHIFT e LCTRL) de branco enquanto o computador informa Caps Lock ligado (condição `cond_caps`). É o último overlay declarado, então aparece por cima de qualquer mapa de camada.
+
+### Animações do underglow
+
+Além do efeito principal, que pinta as teclas e o underglow juntos, o underglow pode ter uma **animação própria**, independente do efeito das teclas: as teclas continuam com o efeito escolhido (ou com o mapa da camada) e só os 6 LEDs de underglow de cada metade mudam. Cinco teclas da camada SYS (segure FN1 e, sem soltar, a posição 25) ligam e desligam as animações.
+
+**Não testado neste teclado.** O que foi conferido: o keymap passa no pré-processador e na leitura da estrutura do devicetree (por script), e o comportamento descrito vem da leitura do código e dos arquivos de binding do módulo zmk-rgb-matrix. Ninguém viu as animações nos LEDs.
+
+| Posição | Tecla na base | Comando | Animação | Overlay | Efeito e propriedades |
+|---|---|---|---|---|---|
+| 26 | X | `&ug_rain` | arco-íris varrendo o underglow | `ov_ugrain` | `rainbow`: `color = 0xFFFFFF`, `duration = 4000`, `basis = "x"`, `direction = "out"`, `palette = "rainbow"` |
+| 27 | C | `&ug_brth` | respiração em ciano | `ov_ugbrth` | `breathe`: `color = 0x00FFFF`, `duration = 4000` |
+| 28 | V | `&ug_spec` | os 6 LEDs ciclam juntos pelo espectro | `ov_ugspec` | `spectrum`: `duration = 6000` |
+| 29 | B | `&ug_star` | brilhos aleatórios brancos | `ov_ugstar` | `starlight`: `color = 0xFFFFFF`, `smooth` |
+| 35 | ] | `&ug_off` | underglow apagado | `ov_ugoff` | `solid`: `color = 0x000000` |
+
+Como usar e o que esperar:
+
+- Cada tecla é um **interruptor**: um toque liga a animação e outro toque a desliga. O comando vale para as duas metades: uma tecla de qualquer metade liga ou desliga a animação nas duas.
+- Com mais de uma animação ligada, vale a de baixo da tabela (a última declarada fica por cima), e `&ug_off` vence todas.
+- O estado **não é salvo**: ao desligar o teclado, todas voltam a desligadas e o underglow volta a mostrar o efeito principal (ou o mapa de cores da camada base).
+- As animações só aparecem na camada QWERTY. Elas vêm antes dos mapas de camada na ordem de pintura, então, enquanto uma camada de FN1 a STENO está ativa, o mapa da camada cobre o underglow (que mostra a cor da camada) e a animação nem é desenhada. Por isso, ao tocar uma tecla destas na camada SYS, a animação só aparece quando você solta as teclas e volta ao QWERTY. Para ela aparecer por cima dos mapas (e o underglow deixar de mostrar a cor da camada), mova os cinco overlays `ov_ug*` para depois de `ov_steno` e antes de `ov_caps` em `rgb_overlays`.
+- `RGB_TOG` apaga tudo, as animações inclusive, e o brilho (`RGB_BRI` e `RGB_BRD`) vale para elas. Matiz, saturação e velocidade (`RGB_HUI` a `RGB_SPD`) e a troca de efeito (`RGB_EFF` e `RGB_EFR`) não mexem nas animações, porque o efeito de um overlay é privado.
+- Se você já salvou edições na camada SYS pelo ZMK Studio, as cinco teclas só aparecem depois de "Restore Stock Settings" ou de você atribuí-las pelo próprio Studio (veja [Solução de problemas](#solução-de-problemas)).
+- Para mudar as cores e os efeitos, ou criar uma animação nova, veja [Dar um efeito próprio ao underglow](#dar-um-efeito-próprio-ao-underglow).
 
 ### Slots de cor
 
@@ -606,6 +642,7 @@ O módulo guarda o estado das luzes na memória do teclado (`CONFIG_SETTINGS`), 
 | matiz, saturação e velocidade ajustados com `RGB_HUI`, `RGB_HUD`, `RGB_SAI`, `RGB_SAD`, `RGB_SPI` e `RGB_SPD` | só nos efeitos que têm `persist-id` | **neste repositório nenhum efeito tem `persist-id`**, então esses ajustes voltam aos valores do keymap ao reiniciar. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
 | cores padrão dos mapas por camada (`config/led_colors.dtsi`) | não, fazem parte do firmware | só mudam ao gravar um firmware novo na metade correspondente |
 | cores dos mapas por camada editadas pelo ZMK Studio | só quando você salva (botão **Save** do app, que envia `save_led_changes`) | um registro por camada na memória da metade esquerda, só com os slots diferentes do padrão. A metade direita não grava nada: recebe as cores da esquerda ao conectar. Os slots salvos valem no lugar do padrão, e `RGB_RESET` apaga os registros. Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) |
+| animações do underglow ligadas pelas teclas `&ug_*` | não | o estado fica só na RAM de cada metade: ao desligar o teclado, todas voltam a desligadas |
 
 O estado salvo tem prioridade sobre os valores iniciais do `kprgb`: depois que você muda o efeito, o brilho ou o liga/desliga pelas teclas, `initial-effect` e `initial-brightness` deixam de valer naquele teclado.
 
@@ -736,7 +773,7 @@ ov_fn1: ov_fn1 {
 
 #### Mudar quais LEDs um overlay pinta
 
-Um overlay escolhe seus alvos com estas propriedades (valem para os mapas de camada e para o indicador de Caps Lock):
+Um overlay escolhe seus alvos com estas propriedades (valem para os mapas de camada, para as animações do underglow e para o indicador de Caps Lock):
 
 | Propriedade | Significado |
 |---|---|
@@ -761,10 +798,12 @@ keys = <12 13 14 15 16 17 18 19 20 21 22 23>;
 
 Para remover o indicador de Caps Lock, apague os nós `ov_caps` (em `rgb_overlays`) e `cond_caps` (em `rgb_conditions`).
 
+Para remover as animações do underglow, apague os cinco overlays `ov_ug*` (em `rgb_overlays`), as cinco condições `cond_ug*` (em `rgb_conditions`) e troque as cinco teclas `&ug_*` da camada SYS por `&trans`.
+
 #### Adicionar um efeito novo
 
 1. Declare o efeito dentro de `kprgb`, **depois do último**: assim os índices dos efeitos que já existem não mudam.
-2. Atribua o efeito a uma tecla. Na camada SYS há teclas transparentes (`&trans`) que podem ser trocadas, por exemplo a última da linha 3 da direita (posição 35) ou as da linha 3 da esquerda depois do `&studio_unlock` (posições 25 a 29).
+2. Atribua o efeito a uma tecla livre. A camada SYS não tem mais posições livres (os `&ug_*` ocupam as posições 26 a 29 e 35): troque uma tecla que você não usa ou use outra camada com teclas transparentes (`&trans`), como a MEDIA (por exemplo a posição 2).
 3. Faça commit e push, baixe o firmware e grave as duas metades.
 4. Aperte `RGB_RESET`.
 
@@ -783,8 +822,8 @@ fx_wave: fx_wave {
 ```
 
 ```dts
-// na camada SYS: troca o &trans da posição 35 (a última da linha 3 da direita)
-&fx_heatmap     &fx_starlight   &fx_static      &steno_on       &to 6           &fx_wave
+// na camada MEDIA: troca o &trans da posição 2 (a terceira tecla da linha 1 da esquerda)
+&kp C_PWR  &kp C_SLEEP &fx_wave  &trans    &trans    &caps_word
 ```
 
 Mais ideias de efeito, todas só com propriedades (veja os valores em [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays); **não testadas neste teclado**):
@@ -857,37 +896,57 @@ Dois limites: o protocolo lista no máximo 8 mapas (`layer_ids max_count` no for
 
 #### Dar um efeito próprio ao underglow
 
-Um overlay sem `condition` pinta sempre. Com um efeito filho qualquer, ele dá ao underglow uma animação própria, independente do efeito principal. **Não testada neste teclado.**
+O repositório já traz cinco animações do underglow, ligadas por teclas da camada SYS (veja [Animações do underglow](#animações-do-underglow)). Esta receita mostra como mudar uma delas e como acrescentar outra. **Não testada neste teclado.**
+
+**Mudar uma animação que já existe.** Cada uma é um overlay de `rgb_overlays` (`ov_ugrain`, `ov_ugbrth`, `ov_ugspec`, `ov_ugstar` ou `ov_ugoff`) com um efeito filho (`fx_ov_ugrain` e os demais). Edite as propriedades do filho (`color`, `duration` e as outras do tipo, que estão em [Referência de efeitos, condições e overlays](#referência-de-efeitos-condições-e-overlays)) ou troque o `compatible` por outro tipo de efeito. Para o underglow ter a animação o tempo todo, sem tecla, apague a linha `condition` do overlay: um overlay sem `condition` pinta sempre.
+
+**Acrescentar uma animação nova ligada por uma tecla.** São três peças, todas em `config/corne.keymap`:
 
 ```dts
-// dentro de rgb_overlays, ANTES de ov_fn1, para que os mapas de camada fiquem por cima
-ov_underglow: ov_underglow {
+// 1. em rgb_conditions: o interruptor. O nome do nó dele (ug_nova) tem no máximo 8 caracteres
+cond_ugnova: cond_ugnova {
+    compatible = "keypaw,rgb-condition-latch";
+    ug_nova: ug_nova {
+        compatible = "keypaw,behavior-rgb-overlay-toggle";
+        #binding-cells = <0>;
+    };
+};
+
+// 2. em rgb_overlays, ANTES de ov_ugoff (para o underglow apagado continuar valendo mais)
+//    e antes de ov_fn1 (para os mapas de camada ficarem por cima)
+ov_ugnova: ov_ugnova {
     compatible = "keypaw,rgb-overlay";
+    condition = <&cond_ugnova>;
     leds = <0 1 2 3 4 5>;
-    fx_ov_underglow {
+    fx_ov_ugnova {
         compatible = "keypaw,rgb-matrix-breathe";
         #binding-cells = <0>;
-        color = <0x00FFFF>;
-        duration = <4000>;
+        color = <0xFF00FF>;
+        duration = <3000>;
     };
 };
 ```
 
-Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele. Enquanto uma camada de FN1 a STENO está ativa, o mapa dela cobre o underglow e esta animação não é desenhada.
+```dts
+// 3. em uma camada, o comando &ug_nova (a SYS está cheia: aqui, o &trans da posição 2 da MEDIA)
+&kp C_PWR  &kp C_SLEEP &ug_nova  &trans    &trans    &caps_word
+```
+
+Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele. Enquanto uma camada de FN1 a STENO está ativa, o mapa dela cobre o underglow e a animação não é desenhada. O interruptor não é salvo: ao reiniciar, todas as animações voltam a desligadas. As duas metades precisam receber o mesmo firmware, porque o keymap é compartilhado.
 
 #### Escolher quais overlays aparecem em cada efeito
 
-Por padrão, todos os overlays (os mapas de camada e o Caps Lock) são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`. É a forma de manter um efeito sempre visível, mesmo nas camadas FN1 a STENO:
+Por padrão, todos os overlays (as animações do underglow, os mapas de camada e o Caps Lock) são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`. É a forma de manter um efeito sempre visível, mesmo nas camadas FN1 a STENO:
 
 ```dts
 fx_rainbow: fx_rainbow {
     // ... propriedades do efeito ...
-    no-overlays;                // com este efeito, nenhum overlay é pintado (nem os mapas, nem o Caps Lock)
+    no-overlays;                // com este efeito, nenhum overlay é pintado (nem as animações do underglow, nem os mapas, nem o Caps Lock)
 };
 
 fx_reactive: fx_reactive {
     // ... propriedades do efeito ...
-    overlays = <&ov_caps>;      // com este efeito, só o Caps Lock é pintado: os mapas de camada não aparecem
+    overlays = <&ov_caps>;      // com este efeito, só o Caps Lock é pintado: as animações do underglow e os mapas de camada não aparecem
 };
 ```
 
@@ -968,7 +1027,7 @@ Esta é a lista do que o módulo oferece, não só do que está instalado. Os va
 | `caps-lock` | nenhuma | o computador informa Caps Lock ligado |
 | `layer` | `layer` (índice, obrigatório); `only-topmost` | a camada está ativa. Com `only-topmost`, só se for a camada mais alta ativa |
 | `ble` | `profile`: índice do perfil, ou `-1` para qualquer (padrão); `state`: `"any"` (padrão), `"connected"`, `"disconnected"`, `"open"` | o perfil Bluetooth ativo atende ao teste. `open` é um perfil sem pareamento |
-| `latch` | nenhuma (usa um filho `keypaw,behavior-rgb-overlay-toggle`, cujo nome de nó deve ter no máximo 8 caracteres) | uma tecla a liga e desliga. O estado é volátil e por metade |
+| `latch` | nenhuma (usa um filho `keypaw,behavior-rgb-overlay-toggle`, cujo nome de nó deve ter no máximo 8 caracteres) | uma tecla a liga e desliga. O estado é volátil e por metade. Usada pelas animações do underglow (`cond_ugrain` a `cond_ugoff`) |
 | `and`, `or` | `conditions`: lista de condições | todas (`and`) ou pelo menos uma (`or`) das condições da lista está ativa |
 
 **Overlays** (declarados em `rgb_overlays`)
@@ -1205,7 +1264,7 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | Sintoma | Causa e solução |
 |---|---|
 | Mudei o `.keymap` e as teclas não mudaram | Se você já editou teclas pelo ZMK Studio, o Studio tem prioridade. Use "Restore Stock Settings" no Studio ou grave o `settings_reset` nas duas metades e depois o firmware |
-| A tecla do efeito `static` (camada SYS, posição 32), as teclas do modo de estenotipia (SYS, posições 33 e 34) ou a camada STENO não aparecem no teclado | O mesmo caso da linha anterior: se você já editou teclas pelo Studio, o que foi salvo tem prioridade. Use "Restore Stock Settings" ou, para uma tecla avulsa, atribua o comportamento pelo próprio Studio |
+| A tecla do efeito `static` (camada SYS, posição 32), as teclas do modo de estenotipia (SYS, posições 33 e 34), as teclas das animações do underglow (SYS, posições 26 a 29 e 35) ou a camada STENO não aparecem no teclado | O mesmo caso da linha anterior: se você já editou teclas pelo Studio, o que foi salvo tem prioridade. Use "Restore Stock Settings" ou, para uma tecla avulsa, atribua o comportamento pelo próprio Studio |
 | A cor ou a velocidade que ajustei nas teclas voltou depois de reiniciar | Sem `persist-id`, matiz, saturação e velocidade não são salvos. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
 | O efeito ou o brilho voltou ao anterior depois de desligar o teclado | O estado é gravado 60 s depois da última alteração. Espere um minuto antes de desligar |
 | Mudei `initial-effect` ou `initial-brightness` e nada mudou | O estado salvo tem prioridade sobre os valores iniciais. Aperte `RGB_RESET` (camada SYS, posição 23) depois de gravar |
@@ -1214,6 +1273,8 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | As teclas de polegar não reagem aos efeitos reativos | Corrigido no fork `corne-fixes`. Se voltar a acontecer, confira se `config/west.yml` aponta para o fork e não para o upstream |
 | As teclas de brilho (camada SYS, posições 16 e 17) não mudam o brilho | Pela leitura do código, era um defeito do módulo: `RGB_COLOR_HSB_CMD`, em que a central converte `RGB_BRI` e `RGB_BRD`, só aplicava matiz e saturação. Corrigido no fork `corne-fixes` a partir do commit `123f7ac`: confira o pin em `config/west.yml` e grave as duas metades. **Não testado neste teclado** |
 | O aviso das luzes não aparece na tela direita | O aviso só existe no build da metade direita: grave o firmware novo nela e confira se `config/corne_right.conf` tem `CONFIG_NICE_OLED_WIDGET_LED_TOAST=y`. Ele só aparece quando o comando muda algo (o mesmo efeito de novo, ou o brilho já no limite, não avisa). Se o texto aparecer cortado ou sobre o gato, ajuste `CONFIG_NICE_OLED_WIDGET_LED_TOAST_CUSTOM_Y` (padrão 143). **Não testado neste teclado** |
+| As animações do underglow (teclas `&ug_*` da SYS) não aparecem | Elas só aparecem na camada QWERTY, com as luzes ligadas (`RGB_TOG`): nas camadas FN1 a STENO o mapa da camada cobre o underglow, inclusive enquanto você está na SYS tocando a tecla. Ao reiniciar o teclado todas voltam a desligadas. Com duas ligadas, vale a de baixo da tabela, e `&ug_off` apaga o underglow. **Não testado neste teclado** |
+| O build falha com `node name must fit the 9-byte split behavior_dev field (<= 8 characters)` | O nome do nó de um interruptor de animação (o filho `ug_*` de uma condição `latch`) tem mais de 8 caracteres. Encurte o nome: o do overlay e o da condição não têm esse limite |
 | O ícone de saída da tela esquerda fica em branco com o teclado desconectado | Corrigido na branch `zmk-main` do fork do zmk-nice-oled (commit `479a516` ou posterior). Confira o pin em `config/west.yml` |
 | Erros de link como `multiple definition` ou `undefined reference` depois de mexer em widgets | Mantenha os widgets nativos desligados (`CONFIG_ZMK_WIDGET_*_STATUS=n`) e use apenas o fork `zmk-main` do zmk-nice-oled: a `main` do upstream não é compatível com o ZMK `main` |
 | A metade periférica trava ao ligar a tela | Não reduza `CONFIG_ZMK_DISPLAY_DEDICATED_THREAD_STACK_SIZE` abaixo de `4096` |

@@ -147,11 +147,115 @@
             compatible = "keypaw,rgb-condition-layer";
             layer = <6>;
         };
+
+        // Animacoes do underglow. Cada condicao e um interruptor (latch) que uma
+        // tecla da camada SYS liga e desliga: &ug_rain, &ug_brth, &ug_spec,
+        // &ug_star e &ug_off. O estado fica so na RAM: ao desligar o teclado todos
+        // voltam a desligados. O nome do no de cada interruptor tem no maximo 8
+        // caracteres (o enlace entre as metades guarda o nome em 9 bytes).
+        cond_ugrain: cond_ugrain {
+            compatible = "keypaw,rgb-condition-latch";
+            ug_rain: ug_rain {
+                compatible = "keypaw,behavior-rgb-overlay-toggle";
+                #binding-cells = <0>;
+            };
+        };
+        cond_ugbrth: cond_ugbrth {
+            compatible = "keypaw,rgb-condition-latch";
+            ug_brth: ug_brth {
+                compatible = "keypaw,behavior-rgb-overlay-toggle";
+                #binding-cells = <0>;
+            };
+        };
+        cond_ugspec: cond_ugspec {
+            compatible = "keypaw,rgb-condition-latch";
+            ug_spec: ug_spec {
+                compatible = "keypaw,behavior-rgb-overlay-toggle";
+                #binding-cells = <0>;
+            };
+        };
+        cond_ugstar: cond_ugstar {
+            compatible = "keypaw,rgb-condition-latch";
+            ug_star: ug_star {
+                compatible = "keypaw,behavior-rgb-overlay-toggle";
+                #binding-cells = <0>;
+            };
+        };
+        cond_ugoff: cond_ugoff {
+            compatible = "keypaw,rgb-condition-latch";
+            ug_off: ug_off {
+                compatible = "keypaw,behavior-rgb-overlay-toggle";
+                #binding-cells = <0>;
+            };
+        };
     };
 
     // A ordem de declaracao e a ordem de pintura: o ultimo fica por cima.
     rgb_overlays: rgb_overlays {
         compatible = "keypaw,rgb-overlays";
+
+        // Animacoes do underglow (ligadas pelas teclas &ug_* da camada SYS). Cada
+        // uma pinta so os 6 LEDs de underglow de cada metade (LEDs 0 a 5 da fita)
+        // com um efeito proprio, e as teclas seguem o efeito principal. Vem antes
+        // dos mapas de camada, que cobrem a metade inteira: enquanto uma camada de
+        // FN1 a STENO esta ativa o underglow mostra a cor dela. Com mais de uma
+        // ligada vale a de baixo da lista, e &ug_off (underglow apagado) vence todas.
+        ov_ugrain: ov_ugrain {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_ugrain>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_ugrain {
+                compatible = "keypaw,rgb-matrix-rainbow";
+                #binding-cells = <0>;
+                color = <0xFFFFFF>;
+                duration = <4000>;
+                basis = "x";
+                direction = "out";
+                palette = "rainbow";
+            };
+        };
+        ov_ugbrth: ov_ugbrth {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_ugbrth>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_ugbrth {
+                compatible = "keypaw,rgb-matrix-breathe";
+                #binding-cells = <0>;
+                color = <0x00FFFF>;
+                duration = <4000>;
+            };
+        };
+        ov_ugspec: ov_ugspec {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_ugspec>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_ugspec {
+                compatible = "keypaw,rgb-matrix-spectrum";
+                #binding-cells = <0>;
+                duration = <6000>;
+            };
+        };
+        ov_ugstar: ov_ugstar {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_ugstar>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_ugstar {
+                compatible = "keypaw,rgb-matrix-starlight";
+                #binding-cells = <0>;
+                color = <0xFFFFFF>;
+                smooth;
+            };
+        };
+        ov_ugoff: ov_ugoff {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_ugoff>;
+            leds = <0 1 2 3 4 5>;
+            fx_ov_ugoff {
+                compatible = "keypaw,rgb-matrix-solid";
+                #binding-cells = <0>;
+                color = <0x000000>;
+            };
+        };
 
         // Mapa de cores de cada camada (FN1 a STENO). Enquanto a camada esta
         // ativa, o overlay cobre todos os LEDs da metade (teclas e underglow)
@@ -368,10 +472,13 @@
         };
 
         // 4 — Bluetooth + RGB
-        //   esquerda: BT na 1a fileira; liga/desliga, efeito, cor e brilho na 2a
+        //   esquerda: BT na 1a fileira; liga/desliga, efeito, cor e brilho na 2a;
+        //             na 3a, a liberacao do Studio e as animacoes do underglow
+        //             (&ug_rain, &ug_brth, &ug_spec e &ug_star)
         //   direita : efeitos diretos na 1a fileira; EFR/saturacao/velocidade/
         //             reset na 2a; mais tres efeitos na 3a e, depois deles, os
-        //             comandos do modo STENO (&steno_on e &to 6)
+        //             comandos do modo STENO (&steno_on e &to 6) e o &ug_off,
+        //             que apaga o underglow
         sys_layer {
             display-name = "SYS";
 
@@ -382,8 +489,8 @@
                 &kprgb RGB_TOG  &kprgb RGB_EFF  &kprgb RGB_HUI  &kprgb RGB_HUD  &kprgb RGB_BRI  &kprgb RGB_BRD
                 &kprgb RGB_EFR  &kprgb RGB_SAI  &kprgb RGB_SAD  &kprgb RGB_SPI  &kprgb RGB_SPD  &kprgb RGB_RESET
 
-                &studio_unlock  &trans          &trans          &trans          &trans          &trans
-                &fx_heatmap     &fx_starlight   &fx_static      &steno_on       &to 6           &trans
+                &studio_unlock  &trans          &ug_rain        &ug_brth        &ug_spec        &ug_star
+                &fx_heatmap     &fx_starlight   &fx_static      &steno_on       &to 6           &ug_off
 
                 &kp LGUI  &trans    &kp SPACE
                 &kp RET   &trans    &kp RALT

@@ -1,6 +1,6 @@
 # Corne ZMK
 
-Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split** com **RGB por tecla**, **underglow**, **telas OLED verticais**, **ZMK Studio** e uma camada de **estenotipia** para o Plover. O firmware é compilado pelo GitHub Actions a cada push: não é preciso instalar nada no computador para gerar os arquivos de gravação.
+Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split** com **RGB por tecla**, **underglow**, **telas OLED verticais**, **ZMK Studio** e **estenotipia** para o Plover (por teclas comuns ou por acordes enviados por uma porta serial USB). O firmware é compilado pelo GitHub Actions a cada push: não é preciso instalar nada no computador para gerar os arquivos de gravação.
 
 > Este README descreve o que está de fato no repositório. Ao mudar qualquer coisa (teclas, luzes, opções, versões), a mudança deve ser refletida aqui. Veja [Manter este README atualizado](#manter-este-readme-atualizado).
 
@@ -18,6 +18,10 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
     - [Como ligar e desligar](#como-ligar-e-desligar)
     - [Teclas da camada STENO](#teclas-da-camada-steno)
     - [Outras formas de ter estenotipia no teclado](#outras-formas-de-ter-estenotipia-no-teclado)
+  - [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)
+    - [Configurar o Plover](#configurar-o-plover)
+    - [Teclas da camada GEMINI](#teclas-da-camada-gemini)
+    - [Como funciona por dentro](#como-funciona-por-dentro)
   - [ZMK Studio](#zmk-studio)
     - [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)
     - [Arrastar teclas (fork do app)](#arrastar-teclas-fork-do-app)
@@ -82,8 +86,9 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 
 ### Recursos
 
-- **7 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS, MEDIA e STENO. Veja [Camadas](#camadas).
+- **8 camadas** no padrão do ZMK Studio: QWERTY, FN1, RAISE, NAV, SYS, MEDIA, STENO e GEMINI. Veja [Camadas](#camadas).
 - **Modo de estenotipia**: a camada STENO troca o QWERTY pelas teclas que o [Plover](https://github.com/openstenoproject/plover) lê como uma máquina de estenotipia, e dois macros (`&steno_on` e `&steno_off`) trocam de camada e ligam ou suspendem o Plover (não testado neste teclado). Veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover).
+- **Estenotipia por acordes (Gemini PR)**: a camada GEMINI não digita letras: o teclado junta as teclas de cada acorde e manda o acorde inteiro ao Plover por uma segunda porta serial USB, no protocolo Gemini PR. Com o Plover fechado nada é escrito, e só funciona por USB (não testado neste teclado). Veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr).
 - **RGB por tecla**: os 27 LEDs de cada metade são controlados pelo módulo zmk-rgb-matrix, com 9 efeitos, troca direta de efeito por teclas na camada SYS, um **mapa de cores por LED em cada camada** (as teclas acendem pela função e o underglow pela camada), indicador de Caps Lock e **animações do underglow** que cinco teclas da camada SYS ligam e desligam sem mexer no efeito das teclas (não testado neste teclado). As cores de cada mapa podem ser **editadas e salvas no teclado**, sem recompilar, pela aba **Lights** do fork do app do ZMK Studio (funcionou no teclado, segundo o dono). Veja [Luzes](#luzes-rgb-por-tecla-e-underglow) e [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
 - **Telas OLED verticais** (nice!oled), com uma configuração para cada metade: a esquerda mostra a saída (USB ou Bluetooth), a bateria das duas metades (não testado neste teclado), o perfil Bluetooth, a velocidade de digitação e a camada ativa; a direita mostra a animação do gato, a bateria e a conexão e, por um instante a cada mudança nas luzes (efeito, brilho, cor), um aviso com o que mudou (não testado neste teclado). As telas nunca apagam. Veja [Telas OLED](#telas-oled).
 - **ZMK Studio** na metade esquerda (USB) para editar teclas sem recompilar, com um [fork do app](https://github.com/lenerdz/zmk-studio) que desenha ícones nas teclas de Bluetooth, luzes, camadas e do modo de estenotipia, deixa **arrastar uma tecla sobre outra** para trocá-las e tem a aba **Lights** para editar as cores das luzes. Veja [ZMK Studio](#zmk-studio).
@@ -98,22 +103,29 @@ Configuração de firmware [ZMK](https://zmk.dev) para um teclado **Corne split*
 ├── boards/shields/.gitkeep       pasta vazia reservada para shields próprios
 ├── build.yaml                    matriz de builds: placas, shields, snippets e nomes dos artefatos
 ├── config/
-│   ├── corne.keymap              teclas, camadas, macros do modo de estenotipia e toda a configuração das luzes (efeitos, condições, overlays)
+│   ├── corne.keymap              teclas (inclusive as `&stn` da camada GEMINI), camadas, macros do modo de estenotipia e toda a configuração das luzes (efeitos, condições, overlays)
 │   ├── corne.conf                opções Kconfig das duas metades: parte comum das telas, Bluetooth, NKRO, energia, luzes
-│   ├── corne_left.conf           opções Kconfig só da metade esquerda: buffer de recepção do ZMK Studio e a tela esquerda
+│   ├── corne_left.conf           opções Kconfig só da metade esquerda: buffer de recepção do ZMK Studio, a tela esquerda e as transferências USB das duas portas seriais
 │   ├── corne_right.conf          opções Kconfig só da metade direita: a tela direita (animação e aviso das luzes)
-│   ├── corne_left.overlay        mapa dos LEDs da metade esquerda e os slots de cor dela (slot-count, no-key-slots)
+│   ├── corne_left.overlay        mapa dos LEDs da metade esquerda, os slots de cor dela (slot-count, no-key-slots) e a segunda porta serial USB (gemini_uart)
 │   ├── corne_right.overlay       mapa dos LEDs da metade direita e os slots de cor dela (slot-count, no-key-slots)
 │   ├── led_colors.dtsi           cores padrão de cada slot em cada camada (incluído no fim do corne.keymap)
 │   ├── rgb.dtsi                  legado, sem uso (veja a nota abaixo)
 │   └── west.yml                  versões do ZMK e dos módulos
+├── dts/bindings/behaviors/       zmk,behavior-steno-gemini.yaml: o binding do comportamento &stn
+├── include/dt-bindings/steno/    gemini.h: os números das teclas de estenotipia (STN_*), lidos pelo keymap e pelo C
+├── src/                          behavior_steno_gemini.c: o comportamento &stn (acordes Gemini PR pela porta serial USB)
+├── zephyr/module.yml             registra este repositório como módulo do Zephyr
+├── CMakeLists.txt                compila o código do módulo (só o &stn)
+├── Kconfig                       a opção CONFIG_ZMK_STENO_GEMINI do módulo
 ├── SUGESTOES.md                  ideias de melhoria do layout
 └── README.md                     este arquivo
 ```
 
 - Os shields `corne_left` e `corne_right` vêm do próprio ZMK. Este repositório só acrescenta o keymap, as opções, os mapas de LED e de slots de cor, as cores padrão de cada slot em cada camada e a lista de módulos.
 - `config/led_colors.dtsi` é o arquivo a editar para mudar as cores padrão de cada LED em cada camada. O `config/corne.keymap` o inclui no final. As cores são indexadas por slot e valem para as duas metades. Veja [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
-- `config/corne_left.conf` e `config/corne_right.conf` valem só para o build da metade correspondente: o ZMK aplica o `config/<shield>.conf` de cada shield do build, e o `corne.conf` vale para as duas metades. O da esquerda define o buffer de recepção do ZMK Studio (veja [ZMK Studio](#zmk-studio)) e os widgets da tela esquerda; o da direita define a animação da tela direita e o aviso das luzes (veja [Telas OLED](#telas-oled)).
+- `config/corne_left.conf` e `config/corne_right.conf` valem só para o build da metade correspondente: o ZMK aplica o `config/<shield>.conf` de cada shield do build, e o `corne.conf` vale para as duas metades. O da esquerda define o buffer de recepção do ZMK Studio (veja [ZMK Studio](#zmk-studio)), os widgets da tela esquerda e as transferências USB das duas portas seriais (veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)); o da direita define a animação da tela direita e o aviso das luzes (veja [Telas OLED](#telas-oled)).
+- A raiz do repositório é também um **módulo do Zephyr** (`zephyr/module.yml`): `CMakeLists.txt`, `Kconfig`, `src/`, `include/` e `dts/` guardam o código que o ZMK não tem, hoje só o comportamento `&stn` da camada GEMINI (veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)). O workflow de build do ZMK o encontra pelo `zephyr/module.yml` (veja [Compilar](#compilar)).
 - `config/rgb.dtsi` é resto da configuração antiga de underglow (macros de cor e anotações do mapa de LEDs da época). Nenhum arquivo o inclui, então ele não afeta o firmware. O mapa de LEDs vigente está nos arquivos `.overlay` e na seção [Mapa dos LEDs](#mapa-dos-leds).
 - [`SUGESTOES.md`](SUGESTOES.md) reúne ideias de melhoria do layout (acesso a NAV, home row mods, combos etc.).
 
@@ -142,10 +154,11 @@ Esquerda                      Direita
 | 4 | SYS | Bluetooth, controle das luzes e animações do underglow | segurar FN1 e, sem soltar, segurar a tecla da posição 25 (a do Z) | magenta |
 | 5 | MEDIA | volume, mídia, brilho do monitor, Caps Lock, Caps Word | segurar FN1 e, sem soltar, segurar a tecla da posição 26 (a do X) | ciano |
 | 6 | STENO | digitação de estenotipia no Plover (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)) | na camada SYS, tocar `&steno_on` (posição 33, que também liga o Plover) ou `&to 6` (posição 34, que só troca de camada); sair com `&steno_off` (posição 0 da STENO) ou `&to 0` (posição 12) | roxo |
+| 7 | GEMINI | estenotipia por acordes, enviados ao Plover por uma porta serial USB (veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)) | na camada SYS, tocar `&to 7` (posição 40); sair com `&to 0` (posição 0 da GEMINI) | amarelo |
 
-As camadas 3, 4 e 5 só são alcançadas por FN1: a camada FN1 tem `&mo 3`, `&mo 4` e `&mo 5` nas posições 24, 25 e 26. A camada 6 (STENO) só é alcançada pela SYS e não é de segurar: `&to` a deixa ativa e desativa as outras, e ela só termina com `&steno_off` ou `&to 0`.
+As camadas 3, 4 e 5 só são alcançadas por FN1: a camada FN1 tem `&mo 3`, `&mo 4` e `&mo 5` nas posições 24, 25 e 26. As camadas 6 (STENO) e 7 (GEMINI) só são alcançadas pela SYS e não são de segurar: `&to` as deixa ativas e desativa as outras, e elas só terminam com `&to 0` (a STENO também com `&steno_off`).
 
-O **ID** da camada é a ordem em que ela foi declarada em `config/corne.keymap` (QWERTY 0, FN1 1, RAISE 2, NAV 3, SYS 4, MEDIA 5, STENO 6). É o número que as condições de luz (`cond_*`) e o `layer-id` dos mapas de cor usam, e ele não muda quando as camadas são reordenadas no ZMK Studio.
+O **ID** da camada é a ordem em que ela foi declarada em `config/corne.keymap` (QWERTY 0, FN1 1, RAISE 2, NAV 3, SYS 4, MEDIA 5, STENO 6, GEMINI 7). É o número que as condições de luz (`cond_*`) e o `layer-id` dos mapas de cor usam, e ele não muda quando as camadas são reordenadas no ZMK Studio.
 
 A cor da camada é a do underglow enquanto ela está ativa e a da tecla que a ativa. As cores de todas as teclas de cada camada estão em [Cores por camada e indicador de Caps Lock](#cores-por-camada-e-indicador-de-caps-lock).
 
@@ -155,7 +168,7 @@ Nas grades abaixo, cada camada aparece em duas partes (esquerda e direita), na m
 - Os rótulos seguem os nomes de tecla do ZMK (`LGUI`, `PG_DN`, `C_VOL_DN`...). Pontuação aparece como o próprio caractere (`;`, `[`, `{`...).
 - `FN1`, `RAISE`, `NAV`, `SYS` e `MEDIA` são `&mo <camada>` (a camada fica ativa enquanto a tecla é segurada).
 - `STUDIO` é `&studio_unlock`, `BT n` é `&bt BT_SEL n` e `CAPS_WORD` é `&caps_word`.
-- `NONE` é `&none`: a tecla não faz nada e, ao contrário de `--`, **não** deixa passar a tecla da camada de baixo. `TO n` é `&to n`: vai para a camada n e desativa as outras. `STENO_ON` e `STENO_OFF` são os macros do [modo de estenotipia](#modo-de-estenotipia-plover).
+- `NONE` é `&none`: a tecla não faz nada e, ao contrário de `--`, **não** deixa passar a tecla da camada de baixo. `TO n` é `&to n`: vai para a camada n e desativa as outras. `STENO_ON` e `STENO_OFF` são os macros do [modo de estenotipia](#modo-de-estenotipia-plover). Na camada GEMINI, `S1-`, `T-`, `*1`, `-E`, `#` e os demais nomes de tecla de estenotipia são `&stn STN_<tecla>` ([Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)).
 - Na camada SYS, os nomes em minúsculas (`solid` a `static`) são os efeitos diretos `&fx_<nome>`, os `RGB_*` são `&kprgb RGB_*` e `ug_rain`, `ug_brth`, `ug_spec`, `ug_star` e `ug_off` são os interruptores das [animações do underglow](#animações-do-underglow).
 
 #### Camada 0: QWERTY
@@ -237,7 +250,7 @@ Direita
 solid     breathe   spectrum  rainbow   reactive  ripple
 RGB_EFR   RGB_SAI   RGB_SAD   RGB_SPI   RGB_SPD   RGB_RESET
 heatmap   starlight static    STENO_ON  TO 6      ug_off
-ENTER     --        RALT
+ENTER     TO 7      RALT
 ```
 
 O que cada tecla faz está em [Controles no dia a dia](#controles-no-dia-a-dia).
@@ -276,6 +289,24 @@ N         M         0
 
 As letras são as do mapa padrão da máquina Keyboard do Plover: veja [Teclas da camada STENO](#teclas-da-camada-steno). A terceira linha é `NONE` para que as teclas sem uso não escrevam nada.
 
+#### Camada 7: GEMINI
+
+```text
+Esquerda
+TO 0      S1-       T-        P-        H-        *1
+NONE      S2-       K-        W-        R-        *2
+NONE      NONE      NONE      NONE      NONE      NONE
+                              #         A-        O-
+
+Direita
+*3        -F        -P        -L        -T        -D
+*4        -R        -B        -G        -S        -Z
+NONE      NONE      NONE      NONE      NONE      NONE
+-E        -U        #
+```
+
+Cada tecla de estenotipia é `&stn STN_<tecla>` (veja [Teclas da camada GEMINI](#teclas-da-camada-gemini)); `TO 0` é a saída e `#` é a barra de números. A terceira linha é `NONE` para que as teclas sem uso não façam nada.
+
 ### Funções e recursos
 
 - **Bluetooth com 5 perfis**: `BT 0` a `BT 4` (camada SYS, posições 1 a 5) escolhem o perfil e `BT_CLR` (posição 0) apaga o pareamento do perfil ativo. Opções em `config/corne.conf`: `CONFIG_BT_MAX_CONN=5` e `CONFIG_BT_MAX_PAIRED=5`. Para parear um dispositivo novo, selecione um perfil livre (ou apague o ativo com `BT_CLR`) e adicione o teclado no computador.
@@ -283,11 +314,12 @@ As letras são as do mapa padrão da máquina Keyboard do Plover: veja [Teclas d
 - **Caps Lock**: tecla `CAPS` na camada MEDIA (posição 17). Quando o computador reporta o Caps Lock ligado, a coluna externa da metade esquerda acende em branco. O Caps Word não aciona esse indicador, porque ele não liga o Caps Lock do computador.
 - **Animações do underglow** (`&ug_rain`, `&ug_brth`, `&ug_spec`, `&ug_star` e `&ug_off`, camada SYS, posições 26 a 29 e 35): o underglow de cada metade ganha uma animação própria, independente do efeito das teclas. Veja [Animações do underglow](#animações-do-underglow).
 - **NKRO**: `CONFIG_ZMK_HID_REPORT_TYPE_NKRO=y` permite pressionar qualquer número de teclas ao mesmo tempo. A camada STENO depende dele: o acorde que liga o Plover tem 7 teclas (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)).
+- **Estenotipia por acordes** (`&stn`, camada GEMINI): o teclado manda cada acorde inteiro ao Plover por uma segunda porta serial USB, sem digitar letras. Só por USB. Veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr).
 - **Energia**: `CONFIG_ZMK_SLEEP=n` desliga o deep sleep e `CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n` mantém as telas sempre acesas (o ZMK não tem uma opção só para USB). Isso aumenta o consumo de bateria no uso sem fio. As luzes são tratadas à parte e apagam após 30 s sem digitar; veja [Manter as luzes acesas quando o teclado fica ocioso](#manter-as-luzes-acesas-quando-o-teclado-fica-ocioso).
 
 ### Modo de estenotipia (Plover)
 
-A camada **STENO** (ID 6) troca o QWERTY por um teclado de estenotipia para o [Plover](https://github.com/openstenoproject/plover) ([documentação](https://plover.readthedocs.io/en/latest/)), o programa que transforma acordes em texto. O teclado continua sendo um teclado USB ou Bluetooth comum: ele envia as **letras do mapa padrão da máquina "Keyboard" do Plover**, e o Plover trata várias teclas apertadas juntas como um acorde e o traduz pelo dicionário. Sem o Plover rodando, a camada só digita letras.
+A camada **STENO** (ID 6) troca o QWERTY por um teclado de estenotipia para o [Plover](https://github.com/openstenoproject/plover) ([documentação](https://plover.readthedocs.io/en/latest/)), o programa que transforma acordes em texto. O teclado continua sendo um teclado USB ou Bluetooth comum: ele envia as **letras do mapa padrão da máquina "Keyboard" do Plover**, e o Plover trata várias teclas apertadas juntas como um acorde e o traduz pelo dicionário. Sem o Plover rodando, a camada só digita letras. Para mandar o acorde inteiro por uma porta serial, sem letras, veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr).
 
 Requisitos: no computador, o Plover aberto, com a máquina **Keyboard** e as teclas e os comandos padrão (`commands.json`); no teclado, o NKRO (`CONFIG_ZMK_HID_REPORT_TYPE_NKRO=y`, já ligado em `config/corne.conf`), porque o acorde que liga o Plover tem 7 teclas apertadas ao mesmo tempo.
 
@@ -353,17 +385,92 @@ A primeira linha de cada metade é a de cima do teclado de estenotipia, a segund
 
 #### Outras formas de ter estenotipia no teclado
 
-A forma 1 é a que este repositório implementa. As outras são alternativas, **nenhuma delas feita aqui**:
+As formas 1 e 5 são as que este repositório implementa (a 5, só para o Gemini PR, na camada GEMINI: veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)). As outras são alternativas, **nenhuma delas feita aqui**:
 
 | # | Forma | Como funciona | A favor | Contra |
 |---|---|---|---|---|
 | 1 | Mapa padrão do Plover por NKRO (**implementada**) | camada STENO com as letras do mapa padrão da máquina Keyboard e macros com os acordes de comando | só precisa do Plover; vale em USB e em Bluetooth; nada para configurar no Plover | as letras vazam com o Plover desligado; os acordes de comando também são letras; depende do mapa padrão |
-| 2 | Mapa próprio no Plover, com teclas que não escrevem | trocar as teclas da camada por F13 a F24, teclado numérico ou outras que não geram texto, e configurar o mapa da máquina Keyboard do Plover para elas | nada vaza com o Plover desligado | configurar o Plover em cada computador; F13 a F24 podem colidir com atalhos; os macros mudam junto |
+| 2 | Mapa próprio no Plover, com teclas que não escrevem | trocar as teclas da camada por F13 a F24 (teclas de função extras, que quase nenhum teclado físico tem e que por isso não escrevem nada), teclado numérico ou outras que não geram texto, e configurar o mapa da máquina Keyboard do Plover para elas | nada vaza com o Plover desligado | configurar o Plover em cada computador; F13 a F24 podem colidir com atalhos e são só 12, enquanto a estenotipia tem 23 teclas, então seria preciso completar com outras; os macros mudam junto |
 | 3 | Modo arpejo (arpeggiate) do Plover | o Plover aceita uma tecla de cada vez, e uma tecla de separação (o espaço, por padrão) fecha o golpe | funciona com 6KRO, sem NKRO | bem mais lento; a camada e os comandos mudam |
 | 4 | Plover HID | o teclado se apresenta como um dispositivo HID de estenotipia, que o Plover lê direto: sem letras que vazem e sem mapa de teclas | a forma mais limpa | pede suporte no firmware: o [PR 962 do ZMK](https://github.com/zmkfirmware/zmk/pull/962) (WIP) ainda está aberto e não faz parte do ZMK fixado aqui |
-| 5 | Gemini PR ou TX Bolt por porta serial | o Plover tem as máquinas Gemini PR e TX Bolt, que leem pacotes por uma porta serial | protocolos clássicos de máquinas de estenotipia | o firmware precisaria de um módulo novo, com uma segunda porta serial USB (CDC-ACM) e a conversão dos acordes em pacotes; não existe pronto aqui |
+| 5 | Gemini PR ou TX Bolt por porta serial (**Gemini PR implementado**) | o Plover tem as máquinas Gemini PR e TX Bolt, que leem pacotes por uma porta serial; o teclado ganha uma segunda porta serial USB (CDC ACM) e manda um pacote por acorde | protocolo clássico de máquinas de estenotipia; nada vaza com o Plover fechado; o acorde sai inteiro, sem depender do mapa de teclas nem do NKRO | só por USB; o computador vê uma segunda porta serial; pede código próprio no firmware (o módulo deste repositório); só o Gemini PR foi feito, não o TX Bolt |
 | 6 | Atalho do sistema operacional chamando o Plover | uma tecla que não escreve nada (por exemplo F24), ligada por um atalho global do sistema a `plover -s plover_send_command toggle` (ou `resume`, `suspend`) | liga e desliga o Plover sem acorde e sem letras que vazem | configurar o atalho em cada computador |
 | 7 | Só trocar de camada | `&to 6` e `&to 0`, que já existem | simples | o Plover precisa ser ligado e desligado por outro meio |
+
+### Estenotipia por acordes (Gemini PR)
+
+A camada **GEMINI** (ID 7) é a estenotipia por acordes de verdade. A camada STENO digita letras e deixa o Plover reconhecer que elas formam um acorde; a GEMINI não digita nada: o teclado junta as teclas apertadas e, quando o acorde termina, manda **um pacote por acorde** ao Plover por uma **segunda porta serial USB** (CDC ACM), no protocolo **Gemini PR**, o das máquinas de estenotipia profissionais, que o Plover lê na máquina "Gemini PR". É a forma 5 de [Outras formas de ter estenotipia no teclado](#outras-formas-de-ter-estenotipia-no-teclado), feita só para o Gemini PR.
+
+Na prática:
+
+- Com o Plover fechado, apertar acordes **não escreve nada** em lugar nenhum: o teclado não envia teclas, então nenhuma letra vaza e não há macro para ligar ou desligar o Plover.
+- O acorde é o conjunto das teclas apertadas, não a ordem: ele é enviado quando a **última tecla é solta**, e teclas apertadas e soltas em ordens diferentes, ou de metades diferentes, entram no mesmo acorde. Não precisa de NKRO.
+- **Só funciona por USB**, com a metade esquerda ligada ao computador: a porta serial é da metade esquerda (a central) e não existe por Bluetooth. Por Bluetooth, use a camada STENO.
+
+**Não testado neste teclado nem com o Plover.** O que foi conferido no computador: o código do comportamento (`src/behavior_steno_gemini.c`) foi compilado fora do firmware, com peças de teste no lugar do Zephyr e do ZMK, e executado contra casos de acorde (uma tecla, `STKPWHR`, vogais soltas em ordem diferente, vários acordes seguidos, a mesma chave em duas posições, porta fechada no computador, buffer cheio, soltura sem aperto correspondente), e os pacotes saíram como o esperado; os números das 42 teclas conferem com a tabela `STENO_KEY_CHART` do Plover (`plover/machine/gemini_pr.py`); e o keymap e as cores passam no pré-processador e na leitura da estrutura do devicetree (por script), com os mesmos acordes da camada STENO em todas as posições. O formato do pacote e o comportamento do Plover vêm do código-fonte do Plover, e o da porta serial USB, do código-fonte do Zephyr. Não foi visto: o computador mostrando duas portas, o Plover abrindo a porta e o acorde chegando.
+
+#### Configurar o Plover
+
+1. Grave o firmware nas duas metades e conecte a metade esquerda ao computador por USB. O computador passa a ver **duas portas seriais** do teclado: uma é a do ZMK Studio e a outra é a do Plover. No Windows aparecem como dois "Dispositivo Serial USB" com números de COM diferentes (Gerenciador de Dispositivos, "Portas (COM e LPT)"); no Linux, dois `/dev/ttyACM*`; no macOS, dois `/dev/cu.usbmodem*`.
+2. No Plover, abra **Configure**, aba **Machine**, escolha **Gemini PR** e, nas opções da máquina, escolha a porta. Os outros valores podem ficar como estão (`9600`, 8 bits, sem paridade, 1 bit de parada): numa porta serial USB virtual a velocidade não faz diferença.
+3. Se você não sabe qual das duas é a do Plover, entre na camada GEMINI (passo 4), abra uma janela do Plover que mostre os golpes (o **Paper Tape**) e aperte um acorde: se nada aparecer, escolha a outra porta. A porta do Studio é a que o app do Studio abre ao conectar, e a que sobra é a do Plover.
+4. Entre na camada GEMINI: na camada SYS (segure FN1 e, sem soltar, a tecla da posição 25), toque `&to 7` (posição 40). Saia com `&to 0` (posição 0, a primeira tecla da esquerda na GEMINI).
+
+Cuidados:
+
+- **Uma máquina de cada vez.** O Plover usa uma só máquina: com a **Gemini PR** escolhida, ele não lê as letras da camada STENO, que são da máquina **Keyboard**, e o contrário também. Troque a máquina em Configure ao trocar de camada. Na camada GEMINI os macros `&steno_on` e `&steno_off` não servem: os acordes de comando do Plover (`PHRO*PB`, `PHRO*F` e `PHROLG`, que o `commands.json` padrão liga a `{PLOVER:RESUME}`, `{PLOVER:SUSPEND}` e `{PLOVER:TOGGLE}`) são acordes comuns e saem das próprias teclas.
+- **Cada porta é de um programa só.** Se o Plover abrir a porta do Studio, o app do Studio não conecta, e o contrário também. O teclado só envia acordes enquanto o computador está com a porta do Plover aberta (ele lê o sinal DTR da porta): acordes apertados antes de o Plover abrir a porta são descartados, e não ficam guardados para depois.
+- **Teclas de uso comum.** A camada GEMINI não tem Esc, Enter, setas nem modificadores: para digitar normalmente, saia dela com `&to 0`.
+- **ZMK Studio.** O app do Studio e o navegador pedem para escolher uma porta serial ao conectar: escolha a do Studio. Se o app não conectar, é a outra. Quem já salvou alterações pelo Studio talvez só veja a camada GEMINI e o `&to 7` da SYS depois de "Restore Stock Settings" (veja [ZMK Studio](#zmk-studio)).
+
+#### Teclas da camada GEMINI
+
+A disposição é a da camada STENO: a primeira linha de cada metade é a de cima do teclado de estenotipia, a segunda é a de baixo, e os polegares são as vogais e a barra de números; a terceira linha são teclas `&none`. Cada tecla é `&stn STN_<tecla>`, com o nome da tecla no `include/dt-bindings/steno/gemini.h` (os nomes do QMK: `STN_TL` é `T-` e `STN_TR` é `-T`). O Plover trata as duas `S1-` e `S2-` como `S-`, os quatro asteriscos como `*` e as teclas de número como `#`.
+
+| Tecla de estenotipia | Tecla do keymap | Posição |
+|---|---|---|
+| `S-` | `STN_S1` e `STN_S2` | 1 e 13 |
+| `T-` | `STN_TL` | 2 |
+| `K-` | `STN_KL` | 14 |
+| `P-` | `STN_PL` | 3 |
+| `W-` | `STN_WL` | 15 |
+| `H-` | `STN_HL` | 4 |
+| `R-` | `STN_RL` | 16 |
+| `*` (esquerda) | `STN_ST1` e `STN_ST2` | 5 e 17 |
+| `A-` | `STN_A` (polegar do meio da esquerda) | 37 |
+| `O-` | `STN_O` (polegar interno da esquerda) | 38 |
+| `*` (direita) | `STN_ST3` e `STN_ST4` | 6 e 18 |
+| `-E` | `STN_E` (polegar interno da direita) | 39 |
+| `-U` | `STN_U` (polegar do meio da direita) | 40 |
+| `-F` | `STN_FR` | 7 |
+| `-R` | `STN_RR` | 19 |
+| `-P` | `STN_PR` | 8 |
+| `-B` | `STN_BR` | 20 |
+| `-L` | `STN_LR` | 9 |
+| `-G` | `STN_GR` | 21 |
+| `-T` | `STN_TR` | 10 |
+| `-S` | `STN_SR` | 22 |
+| `-D` | `STN_DR` | 11 |
+| `-Z` | `STN_ZR` | 23 |
+| `#` (barra de números) | `STN_N1` (polegar externo da esquerda e polegar externo da direita) | 36 e 41 |
+
+O protocolo Gemini PR tem 42 teclas e o keymap usa 27 delas. As que ficaram de fora (`STN_FN`, `STN_PWR`, `STN_RES1`, `STN_RES2` e as teclas de número `STN_N2` a `STN_NC`) existem em `include/dt-bindings/steno/gemini.h` e valem em qualquer `&stn`, mas no mapa padrão da máquina Gemini PR do Plover as primeiras não têm função (`no-op`) e todas as de número são a mesma tecla `#`.
+
+#### Como funciona por dentro
+
+O ZMK não tem esse comportamento, então o repositório é também um **módulo do Zephyr**: o `zephyr/module.yml` da raiz o registra e o workflow de build do ZMK o compila junto com o firmware (veja [Compilar](#compilar)).
+
+- **`&stn`** (`src/behavior_steno_gemini.c`, `dts/bindings/behaviors/zmk,behavior-steno-gemini.yaml`, `Kconfig` e `CMakeLists.txt`): o parâmetro é o número da tecla de estenotipia (os `STN_*` de `include/dt-bindings/steno/gemini.h`), que é também a posição dela no pacote. Apertar uma tecla soma a chave ao acorde; soltar a última tecla envia o acorde. Duas teclas do keymap com a mesma chave (as duas `S-`, os quatro `*`) contam juntas. Uma soltura sem o aperto correspondente é ignorada (o ZMK manda a soltura ao mesmo comportamento do aperto, então não deveria acontecer): ela não vira um acorde vazio.
+- **O pacote** tem 6 bytes de 7 teclas cada (`Fn #1 #2 #3 #4 #5 #6`, `S1- S2- T- K- P- W- H-`, `R- A- O- *1 *2 res1 res2`, `pwr *3 *4 -E -U -F -R`, `-P -B -L -G -T -S -D`, `#7 #8 #9 #A #B #C -Z`), com o bit mais alto do primeiro byte ligado para marcar o início do pacote: é o `STENO_KEY_CHART` de `plover/machine/gemini_pr.py`. O Plover descarta o pacote cujo primeiro byte não tem esse bit ou cujos outros bytes têm.
+- **A porta** é o nó `gemini_uart` de `config/corne_left.overlay` (um `zephyr,cdc-acm-uart` dentro de `&zephyr_udc0`), a segunda porta serial USB, além da do ZMK Studio (snippet `studio-rpc-usb-uart`). O pacote entra no buffer de saída da porta (`uart_fifo_fill`) sem esperar o computador, e só se o computador abriu a porta (sinal DTR).
+- **Só a metade central o executa.** O comportamento tem `locality` central, então o keymap o roda na metade esquerda, que tem a porta, mesmo para as teclas da direita, que chegam por Bluetooth. A metade direita compila o mesmo código, sem o nó da porta, e nunca o executa.
+- **Opção.** Em `config/corne_left.conf`:
+
+| Opção | Valor | O que faz |
+|---|---|---|
+| `CONFIG_USB_MAX_NUM_TRANSFERS` | `8` | quantas transferências USB podem estar em andamento ao mesmo tempo. Cada porta serial usa até duas (uma de leitura, uma de escrita), então as duas portas usam exatamente o padrão do Zephyr (4), sem folga; com 8 sobra margem |
+
+Para desligar o módulo sem apagar nada, remova o nó `stn` de `config/corne.keymap` (e as teclas `&stn` da camada GEMINI): a opção `CONFIG_ZMK_STENO_GEMINI` do `Kconfig` depende da existência do nó e o código deixa de ser compilado.
 
 ### ZMK Studio
 
@@ -373,9 +480,11 @@ O ZMK Studio permite editar teclas pelo navegador, sem recompilar. Ele está hab
 2. Abra o app em um navegador baseado em Chromium e conecte ao teclado: [zmk.studio](https://zmk.studio) (o app oficial) ou o [fork não oficial deste projeto](https://lenerdz.github.io/zmk-studio/), que desenha ícones nas teclas (veja [Ícones nas teclas (fork do app)](#ícones-nas-teclas-fork-do-app)), deixa arrastar uma tecla sobre outra (veja [Arrastar teclas (fork do app)](#arrastar-teclas-fork-do-app)) e tem a aba **Lights** para editar as cores das luzes (veja [Editar as cores na aba Lights](#editar-as-cores-na-aba-lights)).
 3. Para liberar a edição, pressione a tecla `&studio_unlock`: camada RAISE, posição 13, ou camada SYS, posição 24.
 
+O teclado mostra ao computador **duas portas seriais** USB (a do Studio e a do Plover, veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)): ao conectar, o navegador pede para escolher uma, e a do Studio é a que responde. Se o app não conectar, tente a outra. Não testado neste teclado.
+
 > **Atenção:** depois que você usar o ZMK Studio para gerenciar as teclas, mudanças futuras no arquivo `.keymap` não são aplicadas até você executar a ação "Restore Stock Settings" na interface do Studio (ou gravar o `settings_reset` nas duas metades). É o comportamento documentado pelo ZMK. Em geral, escolha um dos dois caminhos para as teclas: o Studio ou o `.keymap`.
 >
-> Isso vale para as teclas e camadas. Os efeitos, as condições e os overlays de luz, as cores padrão de `config/led_colors.dtsi`, o `corne.conf` e os `.overlay` são compilados no firmware e continuam valendo normalmente a cada gravação. As cores de mapa que alguém tenha editado e salvo no teclado (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)) têm prioridade sobre as padrão nos slots editados, e "Restore Stock Settings" as apaga. A consequência prática: se você já usa o Studio, um efeito novo adicionado ao `.keymap` precisa ser atribuído a uma tecla pelo próprio Studio (foi o caso do `&fx_static`, camada SYS, posição 32; o mesmo vale para a camada STENO e para `&steno_on` e `&to 6`, camada SYS, posições 33 e 34). As cores de cada camada seguem o ID da camada e a posição física da tecla, não o que o Studio colocou nela.
+> Isso vale para as teclas e camadas. Os efeitos, as condições e os overlays de luz, as cores padrão de `config/led_colors.dtsi`, o `corne.conf` e os `.overlay` são compilados no firmware e continuam valendo normalmente a cada gravação. As cores de mapa que alguém tenha editado e salvo no teclado (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)) têm prioridade sobre as padrão nos slots editados, e "Restore Stock Settings" as apaga. A consequência prática: se você já usa o Studio, um efeito novo adicionado ao `.keymap` precisa ser atribuído a uma tecla pelo próprio Studio (foi o caso do `&fx_static`, camada SYS, posição 32; o mesmo vale para as camadas STENO e GEMINI e para `&steno_on`, `&to 6` e `&to 7`, camada SYS, posições 33, 34 e 40). As cores de cada camada seguem o ID da camada e a posição física da tecla, não o que o Studio colocou nela.
 
 O firmware usa um fork do protocolo do ZMK Studio, o [`lenerdz/zmk-studio-messages`](https://github.com/lenerdz/zmk-studio-messages) (com [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md)), que acrescenta as requisições dos mapas de cor. Os apps (o oficial e o fork) continuam editando teclas normalmente: eles só não conhecem as requisições novas. Veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) e [Por que existem os forks](#por-que-existem-os-forks).
 
@@ -416,10 +525,10 @@ As luzes são controladas pelo módulo [zmk-rgb-matrix](https://github.com/gudzp
 1. **Fita de LEDs**: cada metade tem 27 LEDs WS2812 em série (`&led_strip { chain-length = <27>; }` em `config/corne.keymap`). Os índices 0 a 5 são o underglow (sem tecla) e 6 a 26 são um LED sob cada tecla.
 2. **Mapa dos LEDs**: o nó `keypaw,rgb-matrix` de cada metade (em `config/corne_left.overlay` e `config/corne_right.overlay`) diz onde cada LED fica: pela posição da tecla ou, no underglow, por coordenadas. Os efeitos que dependem de posição (reativo, ondas, mapa de calor) usam essas coordenadas. O mesmo nó define os **slots de cor** (`slot-count` e `no-key-slots`): a posição da lista de cores de onde cada LED tira a sua cor (veja [Slots de cor](#slots-de-cor)).
 3. **Efeitos**: são os nós filhos do comportamento `kprgb` no keymap. Um efeito principal de cada vez pinta todos os LEDs, e as teclas da camada SYS trocam o efeito. O efeito `fx_static` é o mapa de cores da camada base.
-4. **Overlays**: pintam por cima do efeito principal, só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado, um interruptor ligado por tecla). Aqui há cinco **animações do underglow** (`ov_ugrain` a `ov_ugoff`), que pintam só os 6 LEDs de underglow, um **mapa de cores por camada** (FN1 a STENO), que cobre todos os LEDs da metade, e um indicador de Caps Lock, que pinta só três.
+4. **Overlays**: pintam por cima do efeito principal, só enquanto uma condição for verdadeira (uma camada ativa, o Caps Lock ligado, um interruptor ligado por tecla). Aqui há cinco **animações do underglow** (`ov_ugrain` a `ov_ugoff`), que pintam só os 6 LEDs de underglow, um **mapa de cores por camada** (FN1 a GEMINI), que cobre todos os LEDs da metade, e um indicador de Caps Lock, que pinta só três.
 5. **As duas metades precisam ter exatamente os mesmos efeitos, condições e overlays, na mesma ordem**, porque o módulo os identifica pela posição em que foram declarados. Por isso esses blocos ficam no `config/corne.keymap`, que é compartilhado, e não nos `.overlay` de cada metade. As cores também são as mesmas nas duas metades: o `slot-colors` de cada mapa vem de `config/led_colors.dtsi` e é indexado por slot, e cada metade pinta só os slots dos seus LEDs. O que difere entre as metades são os `.overlay` (`mapping`, `slot-count` e `no-key-slots`). Sempre grave as duas metades depois de mexer em qualquer um desses arquivos.
 
-O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_ugrain`, `ov_ugbrth`, `ov_ugspec`, `ov_ugstar`, `ov_ugoff`, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_steno`, `ov_caps`. Quem é declarado depois fica por cima. Um mapa de camada cobre todos os LEDs: enquanto um deles está ativo, o efeito principal, as animações do underglow e os mapas declarados antes dele nem são desenhados (o efeito principal fica pausado e volta quando a camada é solta).
+O efeito principal e cada overlay são combinados nesta ordem de pintura (do fundo para o topo): efeito ativo, `ov_ugrain`, `ov_ugbrth`, `ov_ugspec`, `ov_ugstar`, `ov_ugoff`, `ov_fn1`, `ov_raise`, `ov_nav`, `ov_sys`, `ov_media`, `ov_steno`, `ov_gemini`, `ov_caps`. Quem é declarado depois fica por cima. Um mapa de camada cobre todos os LEDs: enquanto um deles está ativo, o efeito principal, as animações do underglow e os mapas declarados antes dele nem são desenhados (o efeito principal fica pausado e volta quando a camada é solta).
 
 ### Controles no dia a dia
 
@@ -458,6 +567,7 @@ Segure FN1 e, sem soltar, segure a tecla da posição 25 para ativar a camada SY
 | 33 | . | `&steno_on` | vai para a camada STENO e liga o Plover (veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover)) |
 | 34 | [ | `&to 6` | vai para a camada STENO, sem falar com o Plover |
 | 35 | ] | `&ug_off` | liga ou desliga o underglow apagado: apaga os 6 LEDs de underglow de cada metade e vale mais que as outras animações |
+| 40 | RAISE | `&to 7` | vai para a camada GEMINI, a estenotipia por acordes (veja [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr)) |
 
 **Aviso na tela direita (não testado neste teclado).** Cada tecla acima que muda algo que se vê (efeito, ligar e desligar, brilho, matiz, saturação, ciclo da animação ou o reset) faz a tela direita mostrar, por 1,5 s, duas linhas embaixo do gato: por exemplo `EFEITO 4` e `RAINBOW`, `BRILHO` e `70%`, `LUZES` e `APAGADAS`. O aviso vem do evento `zmk_rgb_matrix_changed` do módulo de luzes, que é disparado nas duas metades, e vale para as teclas das duas metades. Comando que não muda nada (o mesmo efeito de novo, o brilho já no limite) não avisa nada, e o aviso não aparece ao ligar o teclado, ao conectar a metade direita nem quando as cores são editadas pelo ZMK Studio. As teclas `&ug_*` também não avisam nada: elas não passam pelo evento das luzes. Os textos e as opções estão em [Aviso das luzes (toast)](#aviso-das-luzes-toast).
 
@@ -485,9 +595,9 @@ O tipo de cada efeito é o `compatible` `keypaw,rgb-matrix-<tipo>`. Os efeitos q
 
 Cada camada tem o seu mapa de cores: uma cor para cada um dos 54 slots (21 teclas e 6 LEDs de underglow em cada metade, veja [Slots de cor](#slots-de-cor)). As cores padrão ficam em [`config/led_colors.dtsi`](config/led_colors.dtsi), que o `config/corne.keymap` inclui no final, e são definidas na compilação: as teclas de luz não mudam essas cores. O arquivo tem a paleta, a macro que põe as cores na ordem dos slots e um bloco por camada. O firmware também permite editar e salvar a cor de cada slot no teclado, sem recompilar: veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio).
 
-**Funcionou no teclado**, segundo o dono, depois de gravar o firmware com as cores por slot. No computador, um script conferiu que as cores por slot reproduzem exatamente as da versão anterior (por LED da fita) em cada LED das duas metades (as 6 camadas daquela versão, 2 metades e 27 LEDs: o script expande o `led_colors.dtsi` antigo e o novo e compara pelo `mapping` dos `.overlay`) e que cada um dos 54 slots é pintado por exatamente um LED. A camada STENO, a sétima, veio depois dessa conferência, e as cores dela foram escritas direto por slot: **não testado neste teclado**.
+**Funcionou no teclado**, segundo o dono, depois de gravar o firmware com as cores por slot. No computador, um script conferiu que as cores por slot reproduzem exatamente as da versão anterior (por LED da fita) em cada LED das duas metades (as 6 camadas daquela versão, 2 metades e 27 LEDs: o script expande o `led_colors.dtsi` antigo e o novo e compara pelo `mapping` dos `.overlay`) e que cada um dos 54 slots é pintado por exatamente um LED. As camadas STENO e GEMINI (a sétima e a oitava) vieram depois dessa conferência, e as cores delas foram escritas direto por slot: **não testado neste teclado**.
 
-A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando você escolhe esse efeito (camada SYS, posição 32); com os outros efeitos a camada 0 mostra o efeito. As camadas 1 a 6 usam overlays, que aparecem com qualquer efeito. Os overlays são declarados em `rgb_overlays` no `config/corne.keymap`, na ordem desta tabela, que é a ordem de pintura (o último fica por cima):
+A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando você escolhe esse efeito (camada SYS, posição 32); com os outros efeitos a camada 0 mostra o efeito. As camadas 1 a 7 usam overlays, que aparecem com qualquer efeito. Os overlays são declarados em `rgb_overlays` no `config/corne.keymap`, na ordem desta tabela, que é a ordem de pintura (o último fica por cima):
 
 | Overlay | Condição | LEDs | Cores |
 |---|---|---|---|
@@ -502,34 +612,35 @@ A camada 0 (QWERTY) usa o efeito `fx_static`: o mapa dela só aparece quando voc
 | `ov_sys` | camada 4 (SYS) ativa | `all-leds` | bloco `&map_sys` |
 | `ov_media` | camada 5 (MEDIA) ativa | `all-leds` | bloco `&map_media` |
 | `ov_steno` | camada 6 (STENO) ativa | `all-leds` | bloco `&map_steno` |
+| `ov_gemini` | camada 7 (GEMINI) ativa | `all-leds` | bloco `&map_gemini` |
 | `ov_caps` | Caps Lock do computador ligado | `keys = <0 12 24>` | `0xFFFFFF` (branco) |
 
 Cada mapa de camada é um overlay com `all-leds` e um efeito `static` filho; o `slot-colors` desse filho é preenchido pelo bloco de mesmo nome em `config/led_colors.dtsi`, e o `layer-id` dele é o ID da camada (a ordem em que ela foi declarada no keymap), que identifica o mapa ao editar e salvar.
 
 - **Prioridade entre camadas.** Como NAV, SYS e MEDIA são alcançadas segurando FN1, duas camadas ficam ativas ao mesmo tempo, e vale o mapa da camada declarada depois: FN1 + NAV mostra o mapa de NAV, FN1 + SYS mostra o de SYS e FN1 + MEDIA mostra o de MEDIA.
-- **O efeito principal fica pausado.** Cada mapa cobre todos os LEDs da metade. Enquanto uma camada de FN1 a STENO está ativa, o efeito principal nem é desenhado: os efeitos que reagem às teclas (`reactive`, `ripple`, `heatmap`) não aparecem nem contam teclas nessas camadas, e voltam quando a camada é solta. Para ver o efeito por baixo do mapa, veja [Deixar o efeito aparecer por baixo do mapa de uma camada](#deixar-o-efeito-aparecer-por-baixo-do-mapa-de-uma-camada).
+- **O efeito principal fica pausado.** Cada mapa cobre todos os LEDs da metade. Enquanto uma camada de FN1 a GEMINI está ativa, o efeito principal nem é desenhado: os efeitos que reagem às teclas (`reactive`, `ripple`, `heatmap`) não aparecem nem contam teclas nessas camadas, e voltam quando a camada é solta. Para ver o efeito por baixo do mapa, veja [Deixar o efeito aparecer por baixo do mapa de uma camada](#deixar-o-efeito-aparecer-por-baixo-do-mapa-de-uma-camada).
 - **Brilho.** As cores são `0xRRGGBB` com brilho cheio. O brilho real vem do `kprgb` e vale para todas as cores, mapas inclusive: `RGB_BRI` e `RGB_BRD` clareiam e escurecem os mapas, e `max-brightness` é o teto. Matiz, saturação e velocidade não alteram os mapas.
 - **As cores seguem a posição, não a tecla.** O mapa guarda uma cor por slot (0 a 41 são as posições físicas das teclas, veja [Posições das teclas](#posições-das-teclas)) e pertence a uma camada pelo ID dela. Se você trocar uma tecla pelo ZMK Studio, a cor não acompanha: edite o `led_colors.dtsi` ou a cor do slot (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)). Se você mudar a ordem das camadas no Studio, o mapa e a condição continuam na mesma camada, porque usam o ID, que não muda.
 - **Cada metade pinta os seus slots.** Cada bloco tem um grupo de 27 valores para a metade esquerda e outro para a direita, e a macro `LED_SLOTS` os junta na lista de 54 slots, igual para as duas metades. O firmware de cada metade pinta só os slots dos seus LEDs (veja [Slots de cor](#slots-de-cor)).
-- O número da camada em cada condição (`cond_fn1` a `cond_steno`) e o `layer-id` de cada mapa são o ID da camada: a ordem em que ela foi declarada no keymap, começando em 0 (QWERTY 0, FN1 1, RAISE 2, NAV 3, SYS 4, MEDIA 5, STENO 6). O ID não muda quando as camadas são reordenadas no ZMK Studio.
+- O número da camada em cada condição (`cond_fn1` a `cond_gemini`) e o `layer-id` de cada mapa são o ID da camada: a ordem em que ela foi declarada no keymap, começando em 0 (QWERTY 0, FN1 1, RAISE 2, NAV 3, SYS 4, MEDIA 5, STENO 6, GEMINI 7). O ID não muda quando as camadas são reordenadas no ZMK Studio.
 
 **Cores padrão.** Cada tecla de camada acende na cor da camada que ela abre (a tecla que você segura continua acesa), e o underglow usa a cor da camada. As demais teclas seguem a função:
 
 | Nome | Cor | Valor | Usada por padrão em |
 |---|---|---|---|
-| `OFF` | apagado | `0x000000` | teclas transparentes (`&trans`) e teclas sem função na camada (inclusive as `&none` da STENO) |
+| `OFF` | apagado | `0x000000` | teclas transparentes (`&trans`) e teclas sem função na camada (inclusive as `&none` da STENO e da GEMINI) |
 | `WHT` | branco | `0xFFFFFF` | letras, SPACE, `CAPS`, `CAPS_WORD`, `C_MUTE` e `RGB_TOG`; as teclas `&to` (`TO 6` na SYS e `TO 0` na STENO) e `&ug_off` |
-| `RED` | vermelho | `0xFF0000` | BSPC, DEL, ESC, `C_PWR`, `BT_CLR`, `RGB_RESET` e `&steno_off` |
-| `ORG` | laranja | `0xFF8000` | teclas F, INS, `C_SLEEP`, `C_STOP`, `RGB_HUI` e `RGB_HUD`; camada FN1; consoantes da mão direita (`-F` a `-Z`) da STENO |
-| `YEL` | amarelo | `0xFFFF00` | números, `C_BRI_DN`, `C_BRI_UP`, `RGB_BRI` e `RGB_BRD`; as teclas `1` e `0` (barra de números) da STENO |
+| `RED` | vermelho | `0xFF0000` | BSPC, DEL, ESC, `C_PWR`, `BT_CLR`, `RGB_RESET` e `&steno_off`; o `&to 0` da GEMINI |
+| `ORG` | laranja | `0xFF8000` | teclas F, INS, `C_SLEEP`, `C_STOP`, `RGB_HUI` e `RGB_HUD`; camada FN1; consoantes da mão direita (`-F` a `-Z`) da STENO e da GEMINI |
+| `YEL` | amarelo | `0xFFFF00` | números, `C_BRI_DN`, `C_BRI_UP`, `RGB_BRI` e `RGB_BRD`; as teclas `1` e `0` (barra de números) da STENO; as teclas `#` (barra de números), o underglow e a tecla `&to 7` da camada GEMINI |
 | `LIM` | verde-limão | `0x80FF00` | pontuação e símbolos, HOME, END, PG_UP, PG_DN, PSCRN, SLCK, `RGB_SAI` e `RGB_SAD` |
-| `GRN` | verde | `0x00FF00` | setas, `C_PREV` e `C_NEXT`; camada NAV; as vogais (`A-`, `O-`, `-E` e `-U`) da STENO |
+| `GRN` | verde | `0x00FF00` | setas, `C_PREV` e `C_NEXT`; camada NAV; as vogais (`A-`, `O-`, `-E` e `-U`) da STENO e da GEMINI |
 | `TEA` | verde-água | `0x00FF80` | ENTER e `C_PP`; as teclas das animações do underglow (`&ug_rain`, `&ug_brth`, `&ug_spec` e `&ug_star`) |
-| `CYN` | ciano | `0x00FFFF` | `C_VOL_DN`, `C_VOL_UP`, `RGB_SPI` e `RGB_SPD`; camada MEDIA; consoantes da mão esquerda (`S-` a `R-`) da STENO |
+| `CYN` | ciano | `0x00FFFF` | `C_VOL_DN`, `C_VOL_UP`, `RGB_SPI` e `RGB_SPD`; camada MEDIA; consoantes da mão esquerda (`S-` a `R-`) da STENO e da GEMINI |
 | `SKY` | azul-claro | `0x0080FF` | colchetes, chaves e parênteses; camada RAISE |
 | `BLU` | azul | `0x0000FF` | perfis Bluetooth (`BT_SEL`); underglow da camada base |
 | `PUR` | roxo | `0x8000FF` | TAB, Shift, Ctrl, GUI e Alt; `&steno_on`; camada STENO |
-| `MAG` | magenta | `0xFF00FF` | `&studio_unlock`; camada SYS; os asteriscos (`*`) da STENO |
+| `MAG` | magenta | `0xFF00FF` | `&studio_unlock`; camada SYS; os asteriscos (`*`) da STENO e da GEMINI |
 | `PNK` | rosa | `0xFF0080` | escolha de efeito (`&fx_*`, `RGB_EFF` e `RGB_EFR`) |
 
 Os nomes são macros definidas no começo do `led_colors.dtsi` (veja a receita [Mudar a cor de uma tecla ou de um LED em uma camada](#mudar-a-cor-de-uma-tecla-ou-de-um-led-em-uma-camada)).
@@ -555,7 +666,7 @@ Como usar e o que esperar:
 - Cada tecla é um **interruptor**: um toque liga a animação e outro toque a desliga. O comando vale para as duas metades: uma tecla de qualquer metade liga ou desliga a animação nas duas.
 - Com mais de uma animação ligada, vale a de baixo da tabela (a última declarada fica por cima), e `&ug_off` vence todas.
 - O estado **não é salvo**: ao desligar o teclado, todas voltam a desligadas e o underglow volta a mostrar o efeito principal (ou o mapa de cores da camada base).
-- As animações só aparecem na camada QWERTY. Elas vêm antes dos mapas de camada na ordem de pintura, então, enquanto uma camada de FN1 a STENO está ativa, o mapa da camada cobre o underglow (que mostra a cor da camada) e a animação nem é desenhada. Por isso, ao tocar uma tecla destas na camada SYS, a animação só aparece quando você solta as teclas e volta ao QWERTY. Para ela aparecer por cima dos mapas (e o underglow deixar de mostrar a cor da camada), mova os cinco overlays `ov_ug*` para depois de `ov_steno` e antes de `ov_caps` em `rgb_overlays`.
+- As animações só aparecem na camada QWERTY. Elas vêm antes dos mapas de camada na ordem de pintura, então, enquanto uma camada de FN1 a GEMINI está ativa, o mapa da camada cobre o underglow (que mostra a cor da camada) e a animação nem é desenhada. Por isso, ao tocar uma tecla destas na camada SYS, a animação só aparece quando você solta as teclas e volta ao QWERTY. Para ela aparecer por cima dos mapas (e o underglow deixar de mostrar a cor da camada), mova os cinco overlays `ov_ug*` para depois de `ov_gemini` e antes de `ov_caps` em `rgb_overlays`.
 - `RGB_TOG` apaga tudo, as animações inclusive, e o brilho (`RGB_BRI` e `RGB_BRD`) vale para elas. Matiz, saturação e velocidade (`RGB_HUI` a `RGB_SPD`) e a troca de efeito (`RGB_EFF` e `RGB_EFR`) não mexem nas animações, porque o efeito de um overlay é privado.
 - Se você já salvou edições na camada SYS pelo ZMK Studio, as cinco teclas só aparecem depois de "Restore Stock Settings" ou de você atribuí-las pelo próprio Studio (veja [Solução de problemas](#solução-de-problemas)).
 - Para mudar as cores e os efeitos, ou criar uma animação nova, veja [Dar um efeito próprio ao underglow](#dar-um-efeito-próprio-ao-underglow).
@@ -616,7 +727,7 @@ O firmware também envia a notificação `unsaved_led_changes_status_changed` (I
 
 **Metade direita.** Quem salva é a central, e a periférica nunca grava os mapas. Cada edição vira um comando interno por slot (`RGB_MAP_SET_CMD`) enviado à periférica, um por vez, com 50 ms entre eles. Quando a periférica conecta (ou reinicia), a central manda primeiro um comando que volta os mapas dela ao padrão (`RGB_MAP_RESET_CMD`) e depois só os slots dela cuja cor difere do padrão. Se a metade direita for desligada, ela volta às cores padrão do firmware dela e recebe as edições de novo ao reconectar. Como a periférica parte do padrão do próprio firmware, grave a metade que você mudou em `led_colors.dtsi`. A sincronização por Bluetooth só pode ser conferida no teclado e não tem confirmação individual (veja a situação acima).
 
-**Limites.** `slot-count` até 60; no protocolo do fork, a lista `colors` de `LedMap` tem 54 posições (com mais slots é preciso aumentar `colors max_count` em `proto/zmk/keymap.options.in` do fork e o firmware avisa na compilação). IDs de camada de 0 a 14. No máximo 8 mapas em `get_led_info` (são 7 aqui, com a STENO; a compilação falha com mais de 8, com a mensagem `more colour maps than the LedInfo of the protocol can list`) e 16 slots por `set_led_colors`. O buffer de recepção do ZMK Studio precisa ter pelo menos 256 bytes (`CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256`, em `config/corne_left.conf`): um `set_led_colors` com 16 slots tem 158 bytes depois do enquadramento (até cerca de 210 com escapes) e o padrão do ZMK (30 bytes) descarta o que não cabe. A compilação falha com um valor menor.
+**Limites.** `slot-count` até 60; no protocolo do fork, a lista `colors` de `LedMap` tem 54 posições (com mais slots é preciso aumentar `colors max_count` em `proto/zmk/keymap.options.in` do fork e o firmware avisa na compilação). IDs de camada de 0 a 14. No máximo 8 mapas em `get_led_info` (são 8 aqui, com a GEMINI, então o limite está esgotado; a compilação falha com mais de 8, com a mensagem `more colour maps than the LedInfo of the protocol can list`) e 16 slots por `set_led_colors`. O buffer de recepção do ZMK Studio precisa ter pelo menos 256 bytes (`CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=256`, em `config/corne_left.conf`): um `set_led_colors` com 16 slots tem 158 bytes depois do enquadramento (até cerca de 210 com escapes) e o padrão do ZMK (30 bytes) descarta o que não cabe. A compilação falha com um valor menor.
 
 #### Editar as cores na aba Lights
 
@@ -720,7 +831,7 @@ Isso não afeta as telas OLED, que nunca apagam (`CONFIG_ZMK_DISPLAY_BLANK_ON_ID
 
 #### Mudar a cor de uma tecla ou de um LED em uma camada
 
-As cores ficam em `config/led_colors.dtsi`, um bloco por camada: `&fx_static` (QWERTY), `&map_fn1`, `&map_raise`, `&map_nav`, `&map_sys`, `&map_media` e `&map_steno`. Cada bloco tem dois grupos de 27 valores, o da metade esquerda e o da direita, nesta ordem: três linhas de 6 teclas, os 3 polegares e os 6 LEDs de underglow. As posições são as de [Posições das teclas](#posições-das-teclas), e o comentário ao lado de cada linha diz que tecla era aquela no keymap. Os dois grupos entram em `LED_SLOTS(esquerda, direita)`, que os põe na ordem dos slots (veja [Slots de cor](#slots-de-cor)). **Não testada neste teclado.**
+As cores ficam em `config/led_colors.dtsi`, um bloco por camada: `&fx_static` (QWERTY), `&map_fn1`, `&map_raise`, `&map_nav`, `&map_sys`, `&map_media`, `&map_steno` e `&map_gemini`. Cada bloco tem dois grupos de 27 valores, o da metade esquerda e o da direita, nesta ordem: três linhas de 6 teclas, os 3 polegares e os 6 LEDs de underglow. As posições são as de [Posições das teclas](#posições-das-teclas), e o comentário ao lado de cada linha diz que tecla era aquela no keymap. Os dois grupos entram em `LED_SLOTS(esquerda, direita)`, que os põe na ordem dos slots (veja [Slots de cor](#slots-de-cor)). **Não testada neste teclado.**
 
 1. Abra `config/led_colors.dtsi` e ache o bloco da camada.
 2. Troque o nome da cor da posição que quiser. Exemplo: a tecla F12 da camada FN1 (terceira linha da metade esquerda, quarta tecla) de laranja (`ORG`) para vermelho (`RED`). No bloco `&map_fn1`, a linha passa a ser:
@@ -844,13 +955,13 @@ Mais ideias de efeito, todas só com propriedades (veja os valores em [Referênc
 
 #### Adicionar o mapa de cores de uma camada nova
 
-Depois de criar uma camada no keymap (ela recebe o próximo ID, por exemplo 7), crie a condição, o overlay e o bloco de cores dela. O `layer-id` do mapa é o ID da camada e precisa ser único entre os mapas (de 0 a 14). **Não testada neste teclado.**
+Depois de criar uma camada no keymap (ela recebe o próximo ID, por exemplo 8), crie a condição, o overlay e o bloco de cores dela. O `layer-id` do mapa é o ID da camada e precisa ser único entre os mapas (de 0 a 14). **Não testada neste teclado.**
 
 ```dts
 // em config/corne.keymap, dentro de rgb_conditions
 cond_game: cond_game {
     compatible = "keypaw,rgb-condition-layer";
-    layer = <7>;               // ID da camada no keymap
+    layer = <8>;               // ID da camada no keymap
 };
 ```
 
@@ -864,7 +975,7 @@ ov_game: ov_game {
     map_game: fx_ov_game {
         compatible = "keypaw,rgb-matrix-static";
         #binding-cells = <0>;
-        layer-id = <7>;        // o mesmo ID da camada: identifica o mapa ao editar e salvar
+        layer-id = <8>;        // o mesmo ID da camada: identifica o mapa ao editar e salvar
     };
 };
 ```
@@ -892,7 +1003,7 @@ ov_game: ov_game {
 
 Grave as duas metades. A condição `layer` também aceita `only-topmost;`: o mapa só aparece se essa for a camada mais alta ativa (útil para não misturar cores quando duas camadas estão ativas).
 
-Dois limites: o protocolo lista no máximo 8 mapas (`layer_ids max_count` no fork do protocolo), e a compilação da esquerda falha com mais de 8; e o botão **Export led_colors.dtsi** do app só vale para as camadas 0 a 6, então, para uma camada nova, acrescente o mapa em `MAP_LABELS` (`src/lights/exportDtsi.ts`) e em `LAYER_IDS` (`scripts/generate-led-data.mjs`) do [fork do app](https://github.com/lenerdz/zmk-studio).
+Dois limites: o protocolo lista no máximo 8 mapas (`layer_ids max_count` no fork do protocolo), e a compilação da esquerda falha com mais de 8: **hoje são 8 de 8** (com a GEMINI), então um mapa novo, o nono, exige antes aumentar `layer_ids max_count` em `proto/zmk/keymap.options.in` do fork `lenerdz/zmk-studio-messages`, atualizar o pin em `config/west.yml` e gerar de novo o cliente do app (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)); e o botão **Export led_colors.dtsi** do app só vale para as camadas 0 a 6, então, para uma camada nova, acrescente o mapa em `MAP_LABELS` (`src/lights/exportDtsi.ts`) e em `LAYER_IDS` (`scripts/generate-led-data.mjs`) do [fork do app](https://github.com/lenerdz/zmk-studio).
 
 #### Dar um efeito próprio ao underglow
 
@@ -932,11 +1043,11 @@ ov_ugnova: ov_ugnova {
 &kp C_PWR  &kp C_SLEEP &ug_nova  &trans    &trans    &caps_word
 ```
 
-Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele. Enquanto uma camada de FN1 a STENO está ativa, o mapa dela cobre o underglow e a animação não é desenhada. O interruptor não é salvo: ao reiniciar, todas as animações voltam a desligadas. As duas metades precisam receber o mesmo firmware, porque o keymap é compartilhado.
+Como o efeito de um overlay é privado, as teclas de matiz, saturação e velocidade não mexem nele. Enquanto uma camada de FN1 a GEMINI está ativa, o mapa dela cobre o underglow e a animação não é desenhada. O interruptor não é salvo: ao reiniciar, todas as animações voltam a desligadas. As duas metades precisam receber o mesmo firmware, porque o keymap é compartilhado.
 
 #### Escolher quais overlays aparecem em cada efeito
 
-Por padrão, todos os overlays (as animações do underglow, os mapas de camada e o Caps Lock) são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`. É a forma de manter um efeito sempre visível, mesmo nas camadas FN1 a STENO:
+Por padrão, todos os overlays (as animações do underglow, os mapas de camada e o Caps Lock) são pintados em qualquer efeito. Um efeito pode escolher a própria lista com `overlays`, ou desligá-los com `no-overlays`. É a forma de manter um efeito sempre visível, mesmo nas camadas FN1 a GEMINI:
 
 ```dts
 fx_rainbow: fx_rainbow {
@@ -1084,7 +1195,7 @@ As telas usam o módulo [zmk-nice-oled](https://github.com/lenerdz/zmk-nice-oled
 
 ### O que cada tela mostra
 
-- **Metade esquerda (central)**: saída ativa (USB ou Bluetooth, com ícone próprio para perfil sem pareamento e sem conexão), a bateria das duas metades (como dois números no lugar do ícone, sem o indicador de carga por USB; não testado neste teclado, veja [Tela esquerda (central)](#tela-esquerda-central)), perfil Bluetooth ativo, velocidade de digitação (velocímetro, número e gráfico) e o nome da camada ativa (o `display-name` de cada camada no keymap: QWERTY, FN1, RAISE, NAV, SYS, MEDIA e STENO).
+- **Metade esquerda (central)**: saída ativa (USB ou Bluetooth, com ícone próprio para perfil sem pareamento e sem conexão), a bateria das duas metades (como dois números no lugar do ícone, sem o indicador de carga por USB; não testado neste teclado, veja [Tela esquerda (central)](#tela-esquerda-central)), perfil Bluetooth ativo, velocidade de digitação (velocímetro, número e gráfico) e o nome da camada ativa (o `display-name` de cada camada no keymap: QWERTY, FN1, RAISE, NAV, SYS, MEDIA, STENO e GEMINI).
 - **Metade direita (periférica)**: animação do gato, porcentagem de bateria e o estado da conexão Bluetooth com a metade esquerda. Por 1,5 s depois de cada mudança nas luzes, duas linhas embaixo do gato dizem o que mudou (veja [Aviso das luzes (toast)](#aviso-das-luzes-toast); não testado neste teclado).
 
 As telas **nunca apagam** (`CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n`), nem no USB nem na bateria.
@@ -1174,11 +1285,13 @@ O workflow `.github/workflows/build.yml` roda a cada push, a cada pull request e
 
 | Artefato | Shield | Observações |
 |---|---|---|
-| `corne_left` | `corne_left nice_oled` | snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y` (ZMK Studio), mais as opções de `config/corne_left.conf` (buffer de recepção do ZMK Studio e a tela esquerda) |
+| `corne_left` | `corne_left nice_oled` | snippet `studio-rpc-usb-uart` e `-DCONFIG_ZMK_STUDIO=y` (ZMK Studio), mais as opções de `config/corne_left.conf` (buffer de recepção do ZMK Studio, a tela esquerda e as transferências USB) e a segunda porta serial USB da camada GEMINI (nó `gemini_uart` em `config/corne_left.overlay`) |
 | `corne_right` | `corne_right nice_oled` | metade periférica, com as opções de `config/corne_right.conf` (a tela direita) |
 | `settings_reset` | `settings_reset` | limpa as configurações salvas |
 
 Todos usam a placa `nice_nano//zmk`.
+
+Como a raiz do repositório tem um `zephyr/module.yml`, o workflow de build do ZMK a compila como **módulo extra** (`-DZMK_EXTRA_MODULES` com a raiz do repositório) e trabalha numa cópia da pasta `config` em um diretório temporário, em vez de na pasta do repositório. Na prática, a primeira execução depois de o módulo entrar baixa os módulos do `west.yml` de novo, porque o cache dos módulos usa outro caminho; as seguintes voltam a usar o cache. O que o módulo contém está em [Como funciona por dentro](#como-funciona-por-dentro).
 
 ### Baixar os arquivos de gravação
 
@@ -1223,7 +1336,7 @@ O `settings_reset.uf2` apaga tudo o que o teclado guardou: pareamentos Bluetooth
 | zmk-nice-oled | `lenerdz/zmk-nice-oled`, branch `zmk-main` | `7c93eddfebb104bd1cf71da41b6ce36df76f0971` | PR #37 do upstream (`de5b2af`) mais a correção do transporte `NONE` e o aviso das luzes na tela da periférica |
 | zmk-studio-messages | `lenerdz/zmk-studio-messages`, branch `main` | `cfcce43b2156151fcd09902de1f4887be387b905` | `zmkfirmware/zmk-studio-messages` em `6cb4c28` (o commit que o ZMK fixa) mais as requisições dos mapas de cor. Substitui o módulo de mesmo nome que o ZMK importa |
 
-A ponta da `corne-fixes` (`123f7ac`), a da `zmk-main` (`7c93edd`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins.
+A ponta da `corne-fixes` (`123f7ac`), a da `zmk-main` (`7c93edd`) e a da `main` do fork do protocolo (`cfcce43`) são os próprios pins. O módulo local deste repositório (o comportamento `&stn`, veja [Como funciona por dentro](#como-funciona-por-dentro)) não tem revisão fixada: ele é o próprio repositório, compilado junto com o firmware.
 
 O app web ZMK Studio do fork `lenerdz/zmk-studio` não aparece no `west.yml`: ele não faz parte do firmware. Veja [Por que existem os forks](#por-que-existem-os-forks).
 
@@ -1264,7 +1377,7 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | Sintoma | Causa e solução |
 |---|---|
 | Mudei o `.keymap` e as teclas não mudaram | Se você já editou teclas pelo ZMK Studio, o Studio tem prioridade. Use "Restore Stock Settings" no Studio ou grave o `settings_reset` nas duas metades e depois o firmware |
-| A tecla do efeito `static` (camada SYS, posição 32), as teclas do modo de estenotipia (SYS, posições 33 e 34), as teclas das animações do underglow (SYS, posições 26 a 29 e 35) ou a camada STENO não aparecem no teclado | O mesmo caso da linha anterior: se você já editou teclas pelo Studio, o que foi salvo tem prioridade. Use "Restore Stock Settings" ou, para uma tecla avulsa, atribua o comportamento pelo próprio Studio |
+| A tecla do efeito `static` (camada SYS, posição 32), as teclas do modo de estenotipia (SYS, posições 33 e 34), a tecla `&to 7` da camada GEMINI (SYS, posição 40), as teclas das animações do underglow (SYS, posições 26 a 29 e 35) ou as camadas STENO e GEMINI não aparecem no teclado | O mesmo caso da linha anterior: se você já editou teclas pelo Studio, o que foi salvo tem prioridade. Use "Restore Stock Settings" ou, para uma tecla avulsa, atribua o comportamento pelo próprio Studio |
 | A cor ou a velocidade que ajustei nas teclas voltou depois de reiniciar | Sem `persist-id`, matiz, saturação e velocidade não são salvos. Veja [Salvar a cor e a velocidade ajustadas nas teclas](#salvar-a-cor-e-a-velocidade-ajustadas-nas-teclas) |
 | O efeito ou o brilho voltou ao anterior depois de desligar o teclado | O estado é gravado 60 s depois da última alteração. Espere um minuto antes de desligar |
 | Mudei `initial-effect` ou `initial-brightness` e nada mudou | O estado salvo tem prioridade sobre os valores iniciais. Aperte `RGB_RESET` (camada SYS, posição 23) depois de gravar |
@@ -1273,7 +1386,7 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | As teclas de polegar não reagem aos efeitos reativos | Corrigido no fork `corne-fixes`. Se voltar a acontecer, confira se `config/west.yml` aponta para o fork e não para o upstream |
 | As teclas de brilho (camada SYS, posições 16 e 17) não mudam o brilho | Pela leitura do código, era um defeito do módulo: `RGB_COLOR_HSB_CMD`, em que a central converte `RGB_BRI` e `RGB_BRD`, só aplicava matiz e saturação. Corrigido no fork `corne-fixes` a partir do commit `123f7ac`: confira o pin em `config/west.yml` e grave as duas metades. **Não testado neste teclado** |
 | O aviso das luzes não aparece na tela direita | O aviso só existe no build da metade direita: grave o firmware novo nela e confira se `config/corne_right.conf` tem `CONFIG_NICE_OLED_WIDGET_LED_TOAST=y`. Ele só aparece quando o comando muda algo (o mesmo efeito de novo, ou o brilho já no limite, não avisa). Se o texto aparecer cortado ou sobre o gato, ajuste `CONFIG_NICE_OLED_WIDGET_LED_TOAST_CUSTOM_Y` (padrão 143). **Não testado neste teclado** |
-| As animações do underglow (teclas `&ug_*` da SYS) não aparecem | Elas só aparecem na camada QWERTY, com as luzes ligadas (`RGB_TOG`): nas camadas FN1 a STENO o mapa da camada cobre o underglow, inclusive enquanto você está na SYS tocando a tecla. Ao reiniciar o teclado todas voltam a desligadas. Com duas ligadas, vale a de baixo da tabela, e `&ug_off` apaga o underglow. **Não testado neste teclado** |
+| As animações do underglow (teclas `&ug_*` da SYS) não aparecem | Elas só aparecem na camada QWERTY, com as luzes ligadas (`RGB_TOG`): nas camadas FN1 a GEMINI o mapa da camada cobre o underglow, inclusive enquanto você está na SYS tocando a tecla. Ao reiniciar o teclado todas voltam a desligadas. Com duas ligadas, vale a de baixo da tabela, e `&ug_off` apaga o underglow. **Não testado neste teclado** |
 | O build falha com `node name must fit the 9-byte split behavior_dev field (<= 8 characters)` | O nome do nó de um interruptor de animação (o filho `ug_*` de uma condição `latch`) tem mais de 8 caracteres. Encurte o nome: o do overlay e o da condição não têm esse limite |
 | O ícone de saída da tela esquerda fica em branco com o teclado desconectado | Corrigido na branch `zmk-main` do fork do zmk-nice-oled (commit `479a516` ou posterior). Confira o pin em `config/west.yml` |
 | Erros de link como `multiple definition` ou `undefined reference` depois de mexer em widgets | Mantenha os widgets nativos desligados (`CONFIG_ZMK_WIDGET_*_STATUS=n`) e use apenas o fork `zmk-main` do zmk-nice-oled: a `main` do upstream não é compatível com o ZMK `main` |
@@ -1294,6 +1407,8 @@ Para voltar ao upstream quando o autor aceitar as correções, acrescente o remo
 | Apertei `&steno_on` e apareceram as letras `erfvtik` (ou o Plover não ligou) | O acorde só vira comando com o Plover aberto, com a máquina Keyboard e os mapas padrão (`commands.json`); sem isso as sete teclas são digitadas. Confira o Plover e veja [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover). **Não testado neste teclado**: baseado no código do Plover |
 | `&steno_off` digitou `erfvtu` na janela | O Plover estava suspenso ou fechado: o comando de suspender só vale com a saída do Plover ligada. Use `&to 0` para voltar ao QWERTY sem acorde. **Não testado neste teclado**: baseado no código do Plover |
 | A camada STENO só digita letras e o Plover não traduz | O Plover pode estar suspenso ou fora de sincronia com o teclado. Toque `&steno_on` outra vez ou ligue a saída pelo próprio Plover |
+| Apertei acordes na camada GEMINI e o Plover não recebe nada | Confira, nesta ordem: o teclado está por USB na metade esquerda (a porta não existe por Bluetooth); o Plover está com a máquina **Gemini PR** (e não **Keyboard**) e conectada; a porta escolhida no Plover é a do Plover e não a do ZMK Studio (o computador mostra duas portas do teclado: tente a outra); nenhum outro programa, como o app do Studio, está com a porta aberta; o Plover abriu a porta antes de você apertar o acorde (o teclado descarta os acordes enquanto a porta está fechada). Veja [Configurar o Plover](#configurar-o-plover). **Não testado neste teclado**: baseado no código do Plover e do Zephyr |
+| O computador mostra duas portas seriais do teclado, ou o app do ZMK Studio não conecta | É esperado desde a camada GEMINI: a segunda porta serial USB é a do Plover. Ao conectar o Studio, escolha a outra porta. Se o app continuar sem conectar, feche o Plover (ele pode estar com a porta do Studio aberta) e tente de novo. **Não testado neste teclado** |
 | O build da esquerda falha com `more colour maps than the LedInfo of the protocol can list` | Há mais de 8 mapas de cor (`layer-id`). Aumente `layer_ids max_count` em `proto/zmk/keymap.options.in` do fork `lenerdz/zmk-studio-messages` e atualize o pin em `config/west.yml` (veja [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio)) |
 | Avisos do Kconfig sobre widgets de WPM, modificadores ou bateria no build da metade direita | As opções dos widgets da central ficam em `config/corne_left.conf`. Se os avisos voltarem, alguma delas foi parar no `corne.conf` ou no `corne_right.conf`. O aviso sobre `ZMK_USB` (a periférica não tem a dependência de USB do ZMK) é esperado e continua aparecendo |
 
@@ -1311,6 +1426,7 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 | `config/corne.conf`, `config/corne_left.conf` ou `config/corne_right.conf` | [Telas OLED](#telas-oled) (as três tabelas de opções), [Funções e recursos](#funções-e-recursos), [Modo de estenotipia (Plover)](#modo-de-estenotipia-plover) (NKRO), [ZMK Studio](#zmk-studio) (buffer de recepção) e [O que é salvo na memória](#o-que-é-salvo-na-memória) |
 | `config/west.yml` ou `.github/workflows/build.yml` | [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | `build.yaml` | [Compilar e gravar o firmware](#compilar-e-gravar-o-firmware) |
+| Código do módulo local (`src/`, `include/`, `dts/`, `Kconfig`, `CMakeLists.txt` e `zephyr/module.yml`) | [Estenotipia por acordes (Gemini PR)](#estenotipia-por-acordes-gemini-pr), [Estrutura do repositório](#estrutura-do-repositório) e [Compilar](#compilar) |
 | Arquivo criado, movido ou removido | [Estrutura do repositório](#estrutura-do-repositório) |
 | Fork do app ZMK Studio (`lenerdz/zmk-studio`): ícones, arraste de teclas, aba Lights, hospedagem ou commit | [ZMK Studio](#zmk-studio), [Mapas de cor editáveis pelo ZMK Studio](#mapas-de-cor-editáveis-pelo-zmk-studio) e [Módulos, forks e versões fixadas](#módulos-forks-e-versões-fixadas) |
 | Problema encontrado ou resolvido | [Solução de problemas](#solução-de-problemas) |
@@ -1319,6 +1435,7 @@ Este README é a documentação do projeto e deve acompanhar o repositório: **s
 
 - ZMK: [documentação](https://zmk.dev/docs), [ZMK Studio](https://zmk.dev/docs/features/studio) e [Caps Word](https://zmk.dev/docs/keymaps/behaviors/caps-word).
 - Plover (estenotipia): [código](https://github.com/openstenoproject/plover), [documentação](https://plover.readthedocs.io/en/latest/) e o [PR 962 do ZMK](https://github.com/zmkfirmware/zmk/pull/962) (suporte ao Plover HID, ainda aberto).
+- Gemini PR (camada GEMINI): a [máquina Gemini PR do Plover](https://github.com/openstenoproject/plover/blob/main/plover/machine/gemini_pr.py) (o formato do pacote) e os [mapas de teclas padrão do Plover](https://github.com/openstenoproject/plover/blob/main/plover/system/english_stenotype.py).
 - zmk-rgb-matrix: [upstream](https://github.com/gudzpoz/zmk-rgb-matrix) e [documentação](https://gudzpoz.github.io/zmk-rgb-matrix/); [fork](https://github.com/lenerdz/zmk-rgb-matrix) e seu [README em português](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md), com a seção [Slots de cor e mapas de cores editáveis](https://github.com/lenerdz/zmk-rgb-matrix/blob/corne-fixes/README.pt-BR.md#slots-de-cor-e-mapas-de-cores-editáveis).
 - zmk-nice-oled: [upstream](https://github.com/mctechnology17/zmk-nice-oled), [PR #37](https://github.com/mctechnology17/zmk-nice-oled/pull/37); [fork](https://github.com/lenerdz/zmk-nice-oled) e seu [README em português](https://github.com/lenerdz/zmk-nice-oled/blob/zmk-main/README.pt-BR.md).
 - zmk-studio-messages: [upstream](https://github.com/zmkfirmware/zmk-studio-messages); [fork](https://github.com/lenerdz/zmk-studio-messages) e seu [README em português](https://github.com/lenerdz/zmk-studio-messages/blob/main/README.pt-BR.md).

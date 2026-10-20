@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT
+
+config ZMK_STENO_GEMINI
+	bool "GeminiPR steno keys (&stn)"
+	default y
+	depends on DT_HAS_ZMK_BEHAVIOR_STENO_GEMINI_ENABLED
+	help
+	  The &stn behavior: each key of a chord adds one bit to a GeminiPR packet,
+	  and the packet is sent to the host when the last key of the chord is
+	  released. The packet goes out through the CDC ACM serial port that the
+	  devicetree node labelled gemini_uart declares (only the half that talks
+	  to the computer has it; on the other half the behavior builds but does
+	  nothing, because behaviors with central locality only run on the central).
+	  Plover reads the packets with its "Gemini PR" machine.

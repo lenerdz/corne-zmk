@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+
+description: |
+  GeminiPR steno key. The parameter is the number of one steno key (the STN_*
+  macros of <dt-bindings/steno/gemini.h>). The key adds its bit to the chord
+  being typed, and the whole chord is sent as one 6 byte GeminiPR packet over
+  the serial port labelled gemini_uart when the last key is released.
+
+compatible: "zmk,behavior-steno-gemini"
+
+include: one_param.yaml

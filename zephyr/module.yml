@@ -1,0 +1,6 @@
+name: corne-steno
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    dts_root: .

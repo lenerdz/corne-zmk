@@ -3,6 +3,7 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/rgb.h>
 #include <dt-bindings/keypaw/rgb_matrix.h>
+#include <dt-bindings/steno/gemini.h>
 
 &caps_word {
     continue-list = <UNDERSCORE>;
@@ -26,8 +27,8 @@
  * Os mapas de cor (efeitos static com layer-id) podem ser editados e salvos
  * pelo ZMK Studio. O layer-id e o ID da camada: a ordem em que ela foi
  * declarada no keymap (0 = QWERTY, 1 = FN1, 2 = RAISE, 3 = NAV, 4 = SYS,
- * 5 = MEDIA, 6 = STENO). O ID nao muda se as camadas forem reordenadas no
- * ZMK Studio.
+ * 5 = MEDIA, 6 = STENO, 7 = GEMINI). O ID nao muda se as camadas forem
+ * reordenadas no ZMK Studio.
  */
 / {
     behaviors {
@@ -110,6 +111,16 @@
                 layer-id = <0>;
             };
         };
+
+        // Tecla de estenotipia do protocolo GeminiPR (camada GEMINI). O parametro e
+        // o STN_* de dt-bindings/steno/gemini.h. Quando a ultima tecla do acorde e
+        // solta, o acorde inteiro vai ao Plover por uma porta serial USB. O codigo
+        // esta em src/behavior_steno_gemini.c e a porta, em corne_left.overlay.
+        stn: stn {
+            compatible = "zmk,behavior-steno-gemini";
+            #binding-cells = <1>;
+            display-name = "Steno";
+        };
     };
 
     rgb_conditions: rgb_conditions {
@@ -121,7 +132,7 @@
         };
 
         // Camadas. O numero e o ID da camada: a ordem em que ela foi declarada
-        // no keymap (1 = FN1 ... 6 = STENO), que nao muda quando as camadas sao
+        // no keymap (1 = FN1 ... 7 = GEMINI), que nao muda quando as camadas sao
         // reordenadas no ZMK Studio.
         cond_fn1: cond_fn1 {
             compatible = "keypaw,rgb-condition-layer";
@@ -146,6 +157,10 @@
         cond_steno: cond_steno {
             compatible = "keypaw,rgb-condition-layer";
             layer = <6>;
+        };
+        cond_gemini: cond_gemini {
+            compatible = "keypaw,rgb-condition-layer";
+            layer = <7>;
         };
 
         // Animacoes do underglow. Cada condicao e um interruptor (latch) que uma
@@ -198,7 +213,7 @@
         // uma pinta so os 6 LEDs de underglow de cada metade (LEDs 0 a 5 da fita)
         // com um efeito proprio, e as teclas seguem o efeito principal. Vem antes
         // dos mapas de camada, que cobrem a metade inteira: enquanto uma camada de
-        // FN1 a STENO esta ativa o underglow mostra a cor dela. Com mais de uma
+        // FN1 a GEMINI esta ativa o underglow mostra a cor dela. Com mais de uma
         // ligada vale a de baixo da lista, e &ug_off (underglow apagado) vence todas.
         ov_ugrain: ov_ugrain {
             compatible = "keypaw,rgb-overlay";
@@ -257,7 +272,7 @@
             };
         };
 
-        // Mapa de cores de cada camada (FN1 a STENO). Enquanto a camada esta
+        // Mapa de cores de cada camada (FN1 a GEMINI). Enquanto a camada esta
         // ativa, o overlay cobre todos os LEDs da metade (teclas e underglow)
         // com as cores de led_colors.dtsi e o efeito principal fica pausado por
         // baixo. Segurando FN1 + SYS ao mesmo tempo, o mapa de SYS fica por cima.
@@ -319,6 +334,16 @@
                 compatible = "keypaw,rgb-matrix-static";
                 #binding-cells = <0>;
                 layer-id = <6>;
+            };
+        };
+        ov_gemini: ov_gemini {
+            compatible = "keypaw,rgb-overlay";
+            condition = <&cond_gemini>;
+            all-leds;
+            map_gemini: fx_ov_gemini {
+                compatible = "keypaw,rgb-matrix-static";
+                #binding-cells = <0>;
+                layer-id = <7>;
             };
         };
 
@@ -479,6 +504,7 @@
         //             reset na 2a; mais tres efeitos na 3a e, depois deles, os
         //             comandos do modo STENO (&steno_on e &to 6) e o &ug_off,
         //             que apaga o underglow
+        //   polegares: &to 7 (direita, no meio) liga a camada GEMINI
         sys_layer {
             display-name = "SYS";
 
@@ -493,7 +519,7 @@
                 &fx_heatmap     &fx_starlight   &fx_static      &steno_on       &to 6           &ug_off
 
                 &kp LGUI  &trans    &kp SPACE
-                &kp RET   &trans    &kp RALT
+                &kp RET   &to 7     &kp RALT
             >;
         };
 
@@ -538,6 +564,32 @@
 
                 &kp N1     &kp C    &kp V
                 &kp N      &kp M    &kp N0
+            >;
+        };
+
+        // 7 — estenotipia GeminiPR (Plover, máquina "Gemini PR", só por USB)
+        //   Cada tecla &stn soma uma chave ao acorde; quando a última tecla do
+        //   acorde é solta, o teclado manda o acorde inteiro ao Plover por uma
+        //   porta serial USB (nada é digitado). Mesmo arranjo da camada STENO:
+        //   esquerda: S T P H *1 na 1a fileira, S K W R *2 na 2a, # A O nos polegares
+        //   direita : *3 F P L T D na 1a fileira, *4 R B G S Z na 2a, E U # nos polegares
+        //   a 3a fileira fica sem uso.
+        //   Saída: &to 0 na 1a tecla da esquerda (volta à camada QWERTY).
+        gemini_layer {
+            display-name = "GEMINI";
+
+            bindings = <
+                &to 0        &stn STN_S1  &stn STN_TL  &stn STN_PL  &stn STN_HL  &stn STN_ST1
+                &stn STN_ST3 &stn STN_FR  &stn STN_PR  &stn STN_LR  &stn STN_TR  &stn STN_DR
+
+                &none        &stn STN_S2  &stn STN_KL  &stn STN_WL  &stn STN_RL  &stn STN_ST2
+                &stn STN_ST4 &stn STN_RR  &stn STN_BR  &stn STN_GR  &stn STN_SR  &stn STN_ZR
+
+                &none        &none        &none        &none        &none        &none
+                &none        &none        &none        &none        &none        &none
+
+                &stn STN_N1  &stn STN_A   &stn STN_O
+                &stn STN_E   &stn STN_U   &stn STN_N1
             >;
         };
     };

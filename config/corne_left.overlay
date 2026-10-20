@@ -52,3 +52,16 @@
         no-key-slots = <42 43 44 45 46 47>;
     };
 };
+
+/*
+ * Segunda porta serial USB (CDC ACM), so da metade esquerda. Por ela o
+ * comportamento &stn (src/behavior_steno_gemini.c) manda ao Plover os acordes da
+ * camada GEMINI, no protocolo GeminiPR. A primeira porta serial do teclado e a do
+ * ZMK Studio (snippet studio-rpc-usb-uart); o computador passa a ver duas portas,
+ * e a do Plover e a que NAO e a do Studio. A metade direita nao tem este no.
+ */
+&zephyr_udc0 {
+    gemini_uart: gemini_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};

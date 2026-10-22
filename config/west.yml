@@ -19,7 +19,7 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit f0617b0) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit 57fc004) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
       # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
@@ -31,22 +31,33 @@ manifest:
       # configuracoes das telas OLED (CONFIG_KEYPAW_DISPLAY_SETTINGS: contraste, quando
       # apagar e aviso das luzes, editaveis pelo ZMK Studio, guardadas em cada metade e
       # copiadas para a direita pelo mesmo sync dos mapas de cor; exige
-      # CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n). O codigo desse ultimo recurso esta no 2efbd69;
-      # o 3103ee2 e o f0617b0 so acrescentam a documentacao e os testes no computador.
+      # CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n) + o layout das telas OLED
+      # (CONFIG_KEYPAW_OLED_LAYOUT: quais widgets do zmk-nice-oled cada tela desenha e onde,
+      # e qual animacao ou imagem a tela direita mostra; sao configuracoes de tela com ids
+      # de 16 em diante, editaveis na aba OLED do ZMK Studio; os ids passam a ter 8 bits e o
+      # sync da metade direita envia so o que ela ainda nao tem; precisa estar ligado nas
+      # duas metades, e as opcoes da animacao da tela direita tem de ser as mesmas nas
+      # duas). O codigo das configuracoes das telas esta no 2efbd69 e o do layout no
+      # b9d3e8b; o 3103ee2, o f0617b0 e o 57fc004 so acrescentam documentacao, comentarios
+      # e testes no computador.
       # Voltar para o upstream (remote gudzpoz) so se ele incorporar tudo isso.
-      revision: f0617b0dc2365e8bf3bfc7d083be14618fced718
+      revision: 57fc004724a5c9666f18924d5baed78495e00091
     - name: zmk-nice-oled
       remote: lenerdz
-      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 70f757f) =
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 226cc66) =
       # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
       # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
       # icone de saida fica em branco enquanto o teclado esta desconectado) + o aviso das
       # luzes na tela da periferica (CONFIG_NICE_OLED_WIDGET_LED_TOAST, que escuta o evento do
       # zmk-rgb-matrix acima) + a leitura das configuracoes 5 e 6 do zmk-rgb-matrix (aviso
       # ligado ou desligado e quanto tempo fica na tela, editaveis pelo ZMK Studio) quando
-      # CONFIG_KEYPAW_DISPLAY_SETTINGS=y.
+      # CONFIG_KEYPAW_DISPLAY_SETTINGS=y + o layout das telas em tempo de execucao
+      # (CONFIG_KEYPAW_OLED_LAYOUT=y: cada widget le do zmk-rgb-matrix se e desenhado e
+      # onde, a animacao ou a imagem da tela direita e trocada com o teclado ligado, com
+      # todas elas dentro do firmware, e a tela e redesenhada quando uma configuracao
+      # muda). O codigo do layout esta no 37c9c9f; o 226cc66 so acrescenta a documentacao.
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: 70f757f7766c3c4b1004a42acebbeb4fcb4d5013
+      revision: 226cc662dd6293a62f114d23ef544d27c171dbe4
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao
@@ -55,10 +66,14 @@ manifest:
     # e a notificacao unsaved_led_changes_status_changed, e o caee958, que acrescenta as
     # requisicoes das configuracoes das telas (get_display_info, set_display_setting,
     # restore_display_defaults) e sobe de 8 para 15 o limite de mapas de cor em
-    # get_led_info. Sem ele o modulo zmk-rgb-matrix nao compila com o ZMK Studio ligado.
+    # get_led_info, e o b0bc318, que tira o limite fixo de 16 configuracoes de
+    # DisplayInfo.settings (o firmware passa a codificar a lista: o layout das telas tem 37
+    # configuracoes alem das seis primeiras; o 3c76351 so acrescenta a documentacao). Os
+    # arquivos .proto sao os mesmos do caee958. Sem ele o modulo zmk-rgb-matrix nao compila
+    # com o ZMK Studio ligado.
     - name: zmk-studio-messages
       remote: lenerdz
-      revision: caee958c434f40143eda7195c1ca0939bf905e8b
+      revision: 3c76351f4aaf09ac61e1e2fcfce9487226add9c1
       path: modules/msgs/zmk-studio-messages
   self:
     path: config

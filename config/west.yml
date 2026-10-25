@@ -46,7 +46,7 @@ manifest:
       # requisicoes 109 e 110 no 5feff9f; o 3103ee2, o f0617b0, o 57fc004, o ebe9141 e o
       # 1eba11c so acrescentam documentacao, comentarios e testes no computador.
       # Voltar para o upstream (remote gudzpoz) so se ele incorporar tudo isso.
-      revision: 1eba11c14de7be1080cd363b2c1158d346f9bbc8
+      revision: 101fc837e27bb320ba2682116ad819a6348fa66d
     - name: zmk-nice-oled
       remote: lenerdz
       # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 5940fcd) =
@@ -66,7 +66,7 @@ manifest:
       # layout esta no 37c9c9f, o da figura no 3e620f4 e o do segundo lote de figuras no
       # e30b8ce; o 226cc66, o 324f089, o bd76562 e o 5940fcd so acrescentam a documentacao.
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: 5940fcdb6f6d53b632b7a058deac6d612edc01bf
+      revision: 011f89e96a583307e8bbce647f563a780a560a54
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao

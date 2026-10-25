@@ -19,7 +19,7 @@ manifest:
     - name: zmk-rgb-matrix
       remote: lenerdz
       # RGB por tecla (posicao-aware) com efeitos, overlays e sync entre as metades.
-      # Branch corne-fixes do fork (commit 1eba11c) = upstream gudzpoz/zmk-rgb-matrix a9add03
+      # Branch corne-fixes do fork (commit 230fbe8) = upstream gudzpoz/zmk-rgb-matrix a9add03
       # (2026-10-08) + fix/behavior-metadata-sets-type (compilar com o ZMK Studio ligado)
       # + fix/physical-layout-lookup (usar o layout fisico certo; sem isso as teclas do
       # polegar nao reagem nos efeitos por posicao) + mapas de cor editaveis por camada
@@ -29,8 +29,8 @@ manifest:
       # para avisar as mudancas nas luzes) e a correcao das teclas de brilho (RGB_BRI e
       # RGB_BRD nao mudavam nada: o comando RGB_COLOR_HSB_CMD ignorava o brilho) + as
       # configuracoes das telas OLED (CONFIG_KEYPAW_DISPLAY_SETTINGS: contraste, quando
-      # apagar e aviso das luzes, editaveis pelo ZMK Studio, guardadas em cada metade e
-      # copiadas para a direita pelo mesmo sync dos mapas de cor; exige
+      # apagar, aviso das luzes e anti burn-in, editaveis pelo ZMK Studio, guardadas em cada
+      # metade e copiadas para a direita pelo mesmo sync dos mapas de cor; exige
       # CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE=n) + o layout das telas OLED
       # (CONFIG_KEYPAW_OLED_LAYOUT: quais widgets do zmk-nice-oled cada tela desenha e onde,
       # e qual animacao ou imagem a tela direita mostra; sao configuracoes de tela com ids
@@ -38,18 +38,24 @@ manifest:
       # sync da metade direita envia so o que ela ainda nao tem; precisa estar ligado nas
       # duas metades, e as opcoes da animacao da tela direita tem de ser as mesmas nas
       # duas) + o giro, o recorte e a mistura da figura da tela direita (ids 112 a 115) e
-      # 59 tipos novos de figura (de 7 a 65: 66 tipos no total) + as requisicoes somente de
-      # leitura get_live_status e get_firmware_info (109 e 110: o que a central faz agora e
-      # que firmware ela roda; CONFIG_KEYPAW_DEVICE_STATUS_STUDIO, ligada por padrao com o
-      # ZMK Studio, so na central). O codigo das configuracoes das telas esta no 2efbd69, o
-      # do layout no b9d3e8b, o da figura no 4423803 e o dos 40 tipos novos e das
-      # requisicoes 109 e 110 no 5feff9f; o 3103ee2, o f0617b0, o 57fc004, o ebe9141 e o
-      # 1eba11c so acrescentam documentacao, comentarios e testes no computador.
+      # 59 tipos novos de figura (de 7 a 65: 66 tipos no total, dos quais 24 foram
+      # aposentados, e restam 42 figuras) + as requisicoes somente de leitura
+      # get_live_status e get_firmware_info (109 e 110: o que a central faz agora e que
+      # firmware ela roda; CONFIG_KEYPAW_DEVICE_STATUS_STUDIO, ligada por padrao com o ZMK
+      # Studio, so na central) + a politica propria de quando as telas e as luzes apagam
+      # (configuracoes de 7 a 15: quando apagar as luzes das teclas e o underglow, o
+      # deslocamento de pixel e o escurecimento das telas; o tempo ocioso do ZMK deixa de
+      # ser usado, a atividade de qualquer metade vale para as duas e, por padrao, as luzes
+      # so apagam na bateria). O codigo das configuracoes das telas esta no 2efbd69, o do
+      # layout no b9d3e8b, o da figura no 4423803, o dos 40 tipos novos e das requisicoes
+      # 109 e 110 no 5feff9f e o da politica de apagar, do anti burn-in e dos tipos
+      # aposentados no 101fc83; o 3103ee2, o f0617b0, o 57fc004, o ebe9141, o 1eba11c e o
+      # 230fbe8 so acrescentam documentacao, comentarios e testes no computador.
       # Voltar para o upstream (remote gudzpoz) so se ele incorporar tudo isso.
-      revision: 101fc837e27bb320ba2682116ad819a6348fa66d
+      revision: 230fbe833dbf2cb8439602fc49e39eb7ba3175f0
     - name: zmk-nice-oled
       remote: lenerdz
-      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 5940fcd) =
+      # Widgets verticais para a tela OLED. Branch zmk-main do fork (commit 4bbf24c) =
       # PR #37 de mctechnology17/zmk-nice-oled (migracao para ZMK main / Zephyr 4.1 / LVGL 9,
       # de tokyo2006, commit de5b2af) + tratamento do transporte ZMK_TRANSPORT_NONE (sem isso o
       # icone de saida fica em branco enquanto o teclado esta desconectado) + o aviso das
@@ -61,12 +67,16 @@ manifest:
       # onde, a animacao ou a imagem da tela direita e trocada com o teclado ligado, com
       # todas elas dentro do firmware, e a tela e redesenhada quando uma configuracao
       # muda) + a figura da tela direita colocada no canvas depois dos widgets (um widget
-      # pode ficar sobre ela, e ela gira, recorta e se mistura com eles; 59 figuras novas,
-      # desenhadas por scripts/pictures, as 40 ultimas em um segundo lote). O codigo do
-      # layout esta no 37c9c9f, o da figura no 3e620f4 e o do segundo lote de figuras no
-      # e30b8ce; o 226cc66, o 324f089, o bd76562 e o 5940fcd so acrescentam a documentacao.
+      # pode ficar sobre ela, e ela gira, recorta e se mistura com eles; 37 figuras novas,
+      # desenhadas por scripts/pictures: 31 animacoes e 6 imagens paradas, em dois lotes; as
+      # outras 22 imagens paradas desenhadas foram retiradas, e o Vim e o VIPs Marcos do
+      # shield tambem, com o layout ligado) + o deslocamento de pixel das duas telas (anti
+      # burn-in: widgets/pixel_shift.c, que le as configuracoes 11 a 13 do zmk-rgb-matrix).
+      # O codigo do layout esta no 37c9c9f, o da figura no 3e620f4, o do segundo lote de
+      # figuras no e30b8ce e o do deslocamento de pixel e das imagens retiradas no 011f89e;
+      # o 226cc66, o 324f089, o bd76562, o 5940fcd e o 4bbf24c so acrescentam a documentacao.
       # Voltar para o upstream (remote mctechnology17, revision main) quando o PR for aceito.
-      revision: 011f89e96a583307e8bbce647f563a780a560a54
+      revision: 4bbf24c02cb0cbc54409a9fd69e2dcc58c570a45
     # Protocolo do ZMK Studio (o ZMK traz o seu em app/west.yml, com o mesmo nome e
     # caminho; este projeto o substitui). Fork de zmkfirmware/zmk-studio-messages: o
     # commit 6cb4c28, o mesmo que o ZMK fixa, mais o cfcce43, que acrescenta ao
@@ -77,7 +87,7 @@ manifest:
     # restore_display_defaults) e sobe de 8 para 15 o limite de mapas de cor em
     # get_led_info, e o b0bc318, que tira o limite fixo de 16 configuracoes de
     # DisplayInfo.settings (o firmware passa a codificar a lista: o layout das telas tem 41
-    # configuracoes alem das seis primeiras; o 3c76351 so acrescenta a documentacao), e o
+    # configuracoes alem das quinze primeiras; o 3c76351 so acrescenta a documentacao), e o
     # 6d86c98, que acrescenta as requisicoes somente de leitura get_live_status e
     # get_firmware_info (tags 109 e 110: o que a central faz agora e que firmware ela
     # roda). Os arquivos .proto do 6d86c98 sao os do caee958 mais essas duas requisicoes.
